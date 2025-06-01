@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆圈 -->
+  <circle cx="100" cy="100" r="95" fill="#F5F5F5" stroke="#E0E0E0" stroke-width="2"/>
+  
+  <!-- 商店图标 -->
+  <path d="M60 80V140C60 145.523 64.4772 150 70 150H130C135.523 150 140 145.523 140 140V80M60 80H50L65 50H135L150 80H140M60 80H140" stroke="#BDBDBD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 商店屋顶 -->
+  <path d="M75 50L85 65H115L125 50" stroke="#BDBDBD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 加号 -->
+  <path d="M95 105H105M100 100V110" stroke="#FF5722" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- 文字 -->
+  <text x="100" y="130" font-family="Arial" font-size="12" fill="#666666" text-anchor="middle">暂无商品</text>
+</svg> 
