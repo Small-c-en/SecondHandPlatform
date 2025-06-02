@@ -35,12 +35,43 @@
       <ProductReviewsSection :reviews="product.reviews" class="full-width-card" />
     </div>
     <Footer />
-    <DetailFixedNav />
+    <DetailFixedNav @share="showShareDialog = true" @back="handleBack" />
+
+    <!-- 分享弹窗 -->
+    <ShareDialog
+      v-model="showShareDialog"
+      :product-title="product.title"
+      :product-price="product.details.currentPrice"
+      :product-image="product.images[0]"
+    />
+
+    <!-- 加入购物车成功提示 -->
+    <el-dialog
+      v-model="showCartDialog"
+      title="加入购物车成功"
+      width="360px"
+      :show-close="true"
+      class="cart-success-dialog"
+    >
+      <div class="cart-success-content">
+        <div class="cart-product-info">
+          <img :src="product.images[0]" :alt="product.title" class="cart-product-image" />
+          <div class="cart-product-details">
+            <h4>{{ product.title }}</h4>
+            <p class="cart-product-price">¥{{ product.details.currentPrice }}</p>
+          </div>
+        </div>
+        <div class="cart-actions">
+          <el-button @click="showCartDialog = false">继续购物</el-button>
+          <el-button type="primary" @click="goToCart">去购物车结算</el-button>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import TopNav from '@/components/shared/TopNav.vue'
@@ -52,20 +83,28 @@ import ProductDescription from '@/components/product/ProductDescription.vue'
 import SellerInfoCard from '@/components/product/SellerInfoCard.vue'
 import ProductReviewsSection from '@/components/product/ProductReviewsSection.vue'
 import DetailFixedNav from '@/components/product/DetailFixedNav.vue'
+import ShareDialog from '@/components/shared/ShareDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
-const showModal = inject('showModal')
+
+const showShareDialog = ref(false)
+const showCartDialog = ref(false)
 
 // Mock product data - should come from API
 const product = ref({
   id: route.params.id,
   title: '示例商品标题',
   images: [
-    'https://via.placeholder.com/500x500',
-    'https://via.placeholder.com/500x500',
-    'https://via.placeholder.com/500x500',
+    'https://tse2-mm.cn.bing.net/th/id/OIP-C.yunYpx6nnxDzPIFM78esHgHaE8?w=251&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse1-mm.cn.bing.net/th/id/OIP-C.t3dzgZlPAZVJLe44wDlT1AHaEK?w=299&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
+    'https://tse4-mm.cn.bing.net/th/id/OIP-C.FaoGRPwmwb5pC6xEK1RqiQHaEK?w=326&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7',
   ],
   description: '这是一个示例商品描述...',
   details: {
@@ -92,21 +131,11 @@ const handleAddToCart = () => {
     image: product.value.images[0],
     seller: product.value.seller,
   })
-
-  showModal({
-    title: '添加成功',
-    message: '商品已成功加入购物车',
-    confirmText: '去购物车结算',
-    cancelText: '继续购物',
-    showCancelButton: true,
-  }).then((confirmed) => {
-    if (confirmed) {
-      router.push('/cart')
-    }
-  })
+  showCartDialog.value = true
 }
 
 const handleBuyNow = () => {
+  // 添加到购物车并直接跳转到订单页面
   cartStore.addToCart({
     id: product.value.id,
     name: product.value.title,
@@ -114,7 +143,23 @@ const handleBuyNow = () => {
     image: product.value.images[0],
     seller: product.value.seller,
   })
+
+  router.push({
+    path: '/order',
+    query: {
+      products: [product.value.id],
+      type: 'buy_now',
+    },
+  })
+}
+
+const goToCart = () => {
+  showCartDialog.value = false
   router.push('/cart')
+}
+
+const handleBack = () => {
+  router.push('/products')
 }
 
 onMounted(() => {
@@ -227,5 +272,53 @@ onMounted(() => {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cart-success-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+.cart-success-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cart-product-info {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: 8px;
+}
+
+.cart-product-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.cart-product-details {
+  flex: 1;
+}
+
+.cart-product-details h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.cart-product-price {
+  margin: 0;
+  color: #ff6f00;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.cart-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

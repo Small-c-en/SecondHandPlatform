@@ -40,7 +40,7 @@
     >
       <div class="message-dialog-content">
         <div class="message-info">
-          <i class="el-icon-info message-icon"></i>
+          <el-icon class="message-icon" color="#ff5722"><Bell /></el-icon>
           <span class="message-type">系统通知</span>
           <span class="message-time">{{ currentMessage.time }}</span>
         </div>
@@ -49,13 +49,21 @@
           <div class="message-summary" v-html="currentMessage.summary"></div>
         </div>
         <div class="message-footer">
-          <span class="message-tip">消息将在确认后标记为已读</span>
+          <span class="message-tip">
+            <el-icon><InfoFilled /></el-icon>
+            消息将在确认后标记为已读
+          </span>
         </div>
       </div>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="showMessageDialog = false">关闭</el-button>
-          <el-button type="primary" @click="handleConfirmRead" :disabled="currentMessage.read">
+          <el-button
+            type="primary"
+            @click="handleConfirmRead"
+            :disabled="currentMessage.read"
+            :icon="currentMessage.read ? 'Select' : 'Check'"
+          >
             {{ currentMessage.read ? '已读' : '标记已读' }}
           </el-button>
         </div>
@@ -67,6 +75,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { Bell, InfoFilled } from '@element-plus/icons-vue'
 import MessageTopNav from '@/components/shared/MessageTopNav.vue'
 import MessageTabBar from '@/components/shared/MessageTabBar.vue'
 import SystemNotifications from '@/components/message/SystemNotifications.vue'
@@ -80,7 +89,11 @@ const router = useRouter()
 const activeTab = ref('system')
 const showMessageDialog = ref(false)
 const currentMessage = ref({})
-const unreadCounts = ref({ system: 5, transaction: 3, chat: 7 })
+const unreadCounts = ref({
+  system: 2, // 系统通知未读数
+  transaction: 3, // 交易提醒未读数
+  chat: 4, // 聊天消息未读数
+})
 
 const systemMessages = ref([
   {
@@ -89,6 +102,7 @@ const systemMessages = ref([
     summary: '平台将于近期进行系统维护...',
     time: '2024-07-01 10:00',
     read: false,
+    unreadCount: 1,
   },
   {
     id: 2,
@@ -96,24 +110,34 @@ const systemMessages = ref([
     summary: '全场商品低至 5 折，快来抢购...',
     time: '2024-06-30 15:30',
     read: true,
+    unreadCount: 0,
   },
 ])
 
 const transactionMessages = ref([
-  { id: 1, type: 'order', content: '您的订单已发货', important: true, time: '2024-07-01 14:00' },
+  {
+    id: 1,
+    type: 'order',
+    content: '您的订单已发货',
+    important: true,
+    time: '2024-07-01 14:00',
+    unreadCount: 2,
+  },
   {
     id: 2,
     type: 'review',
     content: '买家已付款，请及时发货',
     important: false,
     time: '2024-07-01 13:00',
+    unreadCount: 1,
   },
 ])
 
 const chatConversations = ref([
   {
     id: 1,
-    avatar: 'https://placekitten.com/50/50',
+    avatar:
+      'https://tse1-mm.cn.bing.net/th/id/OIP-C.nKetvjjSggVKwC55M-AzUwAAAA?rs=1&pid=ImgDetMain',
     nickname: '买家 A',
     lastMessage: '请问商品什么时候发货？',
     unreadCount: 2,
@@ -121,13 +145,19 @@ const chatConversations = ref([
   },
   {
     id: 2,
-    avatar: 'https://placekitten.com/50/50',
+    avatar:
+      'https://tse1-mm.cn.bing.net/th/id/OIP-C.Knh5i_ceDHm_cwzEcKFJ2gAAAA?w=219&h=219&c=7&r=0&o=5&dpr=1.5&pid=1.7',
     nickname: '卖家 B',
     lastMessage: '已发货，请耐心等待',
-    unreadCount: 0,
+    unreadCount: 2,
     time: '2024-07-01 15:00',
   },
 ])
+
+// 更新未读消息总数的计算属性
+const totalUnreadCount = computed(() => {
+  return Object.values(unreadCounts.value).reduce((sum, count) => sum + count, 0)
+})
 
 // 查看系统消息
 const viewSystemMessage = (message) => {
@@ -138,9 +168,10 @@ const viewSystemMessage = (message) => {
 // 标记消息为已读
 const markMessageAsRead = (messageId) => {
   const message = systemMessages.value.find((msg) => msg.id === messageId)
+  viewSystemMessage(message)
   if (message && !message.read) {
     message.read = true
-    unreadCounts.value.system--
+    unreadCounts.value.system = Math.max(0, unreadCounts.value.system - 1)
   }
 }
 
@@ -160,6 +191,8 @@ const handleConfirmRead = () => {
 // 清空已读消息
 const clearReadMessages = () => {
   systemMessages.value = systemMessages.value.filter((msg) => !msg.read)
+  transactionMessages.value = transactionMessages.value.filter((msg) => msg.unreadCount > 0)
+  chatConversations.value = chatConversations.value.filter((chat) => chat.unreadCount > 0)
 }
 
 // 返回顶部
@@ -210,10 +243,13 @@ const enterChat = (id) => {
   margin-right: 0;
   padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
+  background-color: #f8f8f8;
 }
 
-.message-dialog :deep(.el-dialog__body) {
-  padding: 0;
+.message-dialog :deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
 }
 
 .message-dialog-content {
@@ -225,18 +261,19 @@ const enterChat = (id) => {
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  background: #f8f8f8;
-  border-bottom: 1px solid #f0f0f0;
+  background: #fff5f0;
+  border-bottom: 1px solid #ffe4d6;
 }
 
 .message-icon {
-  font-size: 20px;
+  font-size: 24px;
   color: #ff5722;
 }
 
 .message-type {
   font-size: 14px;
   color: #666;
+  font-weight: 500;
 }
 
 .message-time {
@@ -247,6 +284,7 @@ const enterChat = (id) => {
 
 .message-body {
   padding: 24px;
+  background: #fff;
 }
 
 .message-title {
@@ -272,16 +310,27 @@ const enterChat = (id) => {
 .message-tip {
   font-size: 13px;
   color: #999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .dialog-footer {
   padding: 16px 24px;
   text-align: right;
   border-top: 1px solid #f0f0f0;
+  background: #fff;
 }
 
 .dialog-footer .el-button {
   margin-left: 12px;
+  min-width: 90px;
+}
+
+.message-dialog :deep(.el-dialog) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* 响应式设计 */

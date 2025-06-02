@@ -1,10 +1,10 @@
 <template>
   <div class="detail-fixed-nav">
-    <button class="nav-button back-button">
+    <button class="nav-button back-button" @click="$emit('back')">
       <!-- 占位：返回图标 -->
       <span class="icon">←</span> 返回列表
     </button>
-    <button class="nav-button share-button">
+    <button class="nav-button share-button" @click="$emit('share')">
       <!-- 占位：分享图标 -->
       <span class="icon">↪</span> 分享商品
     </button>
@@ -12,6 +12,7 @@
 </template>
 
 <script setup>
+defineEmits(['back', 'share'])
 // 逻辑可以后续添加，例如返回列表的路由跳转，分享功能的实现
 </script>
 
@@ -43,9 +44,7 @@
   font-weight: 500;
   display: flex;
   align-items: center;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .nav-button .icon {
@@ -56,7 +55,7 @@
 /* 为了更好的视觉效果，可以给按钮添加一些交互样式 */
 .nav-button:hover {
   background-color: rgba(0, 0, 0, 0.1);
-  color: #000;
+  color: #ff6f00;
 }
 
 /* 如果有图标库，可以替换这里的文本图标 */

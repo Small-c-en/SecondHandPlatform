@@ -4,7 +4,7 @@
       <div class="left-section">
         <el-tooltip content="返回" placement="bottom">
           <button class="icon-btn" @click="goBack">
-            <i class="el-icon-arrow-left" style="color: black"></i>
+            <el-icon><ArrowLeft /></el-icon>
           </button>
         </el-tooltip>
       </div>
@@ -12,12 +12,12 @@
       <div class="right-section">
         <el-tooltip content="全部标记为已读" placement="bottom">
           <button class="icon-btn" @click="markAllAsRead">
-            <i class="el-icon-check"></i>
+            <el-icon><Check /></el-icon>
           </button>
         </el-tooltip>
         <el-tooltip content="消息设置" placement="bottom">
           <button class="icon-btn" @click="openSettings">
-            <i class="el-icon-setting"></i>
+            <el-icon><Setting /></el-icon>
           </button>
         </el-tooltip>
       </div>
@@ -63,6 +63,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { ArrowLeft, Check, Setting } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const showSettings = ref(false)

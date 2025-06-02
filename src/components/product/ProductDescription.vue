@@ -1,6 +1,8 @@
 <template>
-  <div class="product-description-card scrollable-content">
-    <h3 class="section-title">商品介绍</h3>
+  <div class="product-description">
+    <div class="section-title">
+      <h3>商品介绍</h3>
+    </div>
     <div class="description-content">
       <p>{{ description }}</p>
     </div>
@@ -20,28 +22,54 @@ defineProps({
 </script>
 
 <style scoped>
-.product-description-card {
-  /* scrollable-content 类将从 ProductDetailView 继承，提供滚动和固定高度 */
-  /* 这里可以定义卡片内部的特定样式 */
-  padding: 15px;
-  background-color: #fdfdfd;
+.product-description {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #eee;
 }
 
 .section-title {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.section-title h3 {
+  margin: 0;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   color: #333;
-  margin-top: 0;
-  margin-bottom: 12px;
+}
+
+.description-content {
+  padding: 16px 20px;
+  height: 200px;
+  overflow-y: auto;
 }
 
 .description-content p {
   margin: 0;
-  white-space: pre-wrap; /* 保留文本中的换行和空格 */
+  line-height: 1.6;
+  color: #666;
   font-size: 14px;
-  line-height: 1.7;
-  color: #555;
+  white-space: pre-wrap;
 }
 
-/* 继承的 .scrollable-content 样式将负责高度和滚动条 */
+/* 自定义滚动条样式 */
+.description-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.description-content::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.description-content::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.description-content::-webkit-scrollbar-thumb:hover {
+  background-color: #ccc;
+}
 </style>

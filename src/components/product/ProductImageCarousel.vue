@@ -1,101 +1,168 @@
 <template>
-  <div class="image-carousel">
+  <div class="product-image-carousel" @mouseenter="pauseAutoPlay" @mouseleave="resumeAutoPlay">
     <div class="main-image">
-      <img :src="images[currentIndex]" :alt="`商品图片 ${currentIndex + 1}`" />
+      <img :src="images[currentIndex]" :alt="`商品图片${currentIndex + 1}`" />
+      <div class="zoom-lens" v-if="isZooming" :style="zoomLensStyle" @mousemove="handleZoom"></div>
+      <div class="zoomed-image" v-if="isZooming" :style="zoomedImageStyle"></div>
     </div>
 
     <div class="thumbnails-container">
-      <button class="nav-button prev" @click="scrollThumbnails('prev')" :disabled="isScrollStart">
-        <i class="fas fa-chevron-left"></i>
+      <button
+        class="thumb-control prev"
+        @click="handlePrevClick"
+        :disabled="props.images.length <= 1"
+      >
+        <el-icon><ArrowLeft /></el-icon>
       </button>
 
-      <div class="thumbnails-wrapper" ref="thumbnailsWrapper">
-        <div
-          class="thumbnails"
-          ref="thumbnailsTrack"
-          :style="{ transform: `translateX(${scrollPosition}px)` }"
-        >
+      <div class="thumbnails-track-container">
+        <div class="thumbnails-track" :style="trackStyle">
           <div
             v-for="(image, index) in images"
             :key="index"
-            :class="['thumbnail', { active: index === currentIndex }]"
+            class="thumbnail"
+            :class="{ active: currentIndex === index }"
             @click="setCurrentImage(index)"
           >
-            <img :src="image" :alt="`缩略图 ${index + 1}`" />
+            <img :src="image" :alt="`缩略图${index + 1}`" />
           </div>
         </div>
       </div>
 
-      <button class="nav-button next" @click="scrollThumbnails('next')" :disabled="isScrollEnd">
-        <i class="fas fa-chevron-right"></i>
+      <button
+        class="thumb-control next"
+        @click="handleNextClick"
+        :disabled="props.images.length <= 1"
+      >
+        <el-icon><ArrowRight /></el-icon>
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 
 const props = defineProps({
   images: {
     type: Array,
     required: true,
-    default: () => [],
+  },
+  autoPlayInterval: {
+    type: Number,
+    default: 3000,
   },
 })
 
 const currentIndex = ref(0)
-const thumbnailsWrapper = ref(null)
-const thumbnailsTrack = ref(null)
-const scrollPosition = ref(0)
-const thumbnailWidth = 80 // 缩略图宽度 + 间距
-const scrollStep = thumbnailWidth * 2 // 每次滚动2个缩略图的距离
+const isZooming = ref(false)
+const thumbnailStartIndex = ref(0)
+const THUMBNAIL_WIDTH = 100 // 包含margin的总宽度
+const VISIBLE_THUMBNAILS = 5
+let autoPlayTimer = null
 
-const isScrollStart = computed(() => scrollPosition.value >= 0)
-const isScrollEnd = computed(() => {
-  if (!thumbnailsWrapper.value || !thumbnailsTrack.value) return true
-  const wrapperWidth = thumbnailsWrapper.value.clientWidth
-  const trackWidth = thumbnailsTrack.value.scrollWidth
-  return Math.abs(scrollPosition.value) >= trackWidth - wrapperWidth
-})
+const trackStyle = computed(() => ({
+  transform: `translateX(-${thumbnailStartIndex.value * THUMBNAIL_WIDTH}px)`,
+  transition: 'transform 0.3s ease',
+}))
+
+const handlePrevClick = () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--
+  } else {
+    currentIndex.value = props.images.length - 1
+  }
+  updateThumbnailPosition()
+}
+
+const handleNextClick = () => {
+  if (currentIndex.value < props.images.length - 1) {
+    currentIndex.value++
+  } else {
+    currentIndex.value = 0
+  }
+  updateThumbnailPosition()
+}
 
 const setCurrentImage = (index) => {
   currentIndex.value = index
+  updateThumbnailPosition()
 }
 
-const scrollThumbnails = (direction) => {
-  const wrapperWidth = thumbnailsWrapper.value.clientWidth
-  const trackWidth = thumbnailsTrack.value.scrollWidth
-  const maxScroll = -(trackWidth - wrapperWidth)
+const updateThumbnailPosition = () => {
+  // 确保当前选中的缩略图在可视区域内
+  if (currentIndex.value < thumbnailStartIndex.value) {
+    thumbnailStartIndex.value = currentIndex.value
+  } else if (currentIndex.value >= thumbnailStartIndex.value + VISIBLE_THUMBNAILS) {
+    thumbnailStartIndex.value = currentIndex.value - VISIBLE_THUMBNAILS + 1
+  }
+}
 
-  if (direction === 'next') {
-    scrollPosition.value = Math.max(maxScroll, scrollPosition.value - scrollStep)
-  } else {
-    scrollPosition.value = Math.min(0, scrollPosition.value + scrollStep)
+// 自动播放相关
+const startAutoPlay = () => {
+  if (props.images.length > 1) {
+    autoPlayTimer = setInterval(handleNextClick, props.autoPlayInterval)
+  }
+}
+
+const pauseAutoPlay = () => {
+  if (autoPlayTimer) {
+    clearInterval(autoPlayTimer)
+  }
+}
+
+const resumeAutoPlay = () => {
+  pauseAutoPlay()
+  startAutoPlay()
+}
+
+// 图片放大功能相关
+const zoomLensStyle = ref({})
+const zoomedImageStyle = ref({})
+
+const handleZoom = (event) => {
+  if (!isZooming.value) return
+
+  const image = event.target
+  const { left, top } = image.getBoundingClientRect()
+  const x = event.clientX - left
+  const y = event.clientY - top
+
+  zoomLensStyle.value = {
+    left: `${x}px`,
+    top: `${y}px`,
+  }
+
+  zoomedImageStyle.value = {
+    backgroundImage: `url(${props.images[currentIndex.value]})`,
+    backgroundPosition: `-${x * 2}px -${y * 2}px`,
   }
 }
 
 onMounted(() => {
-  // 初始化时检查是否需要显示导航按钮
-  const wrapperWidth = thumbnailsWrapper.value.clientWidth
-  const trackWidth = thumbnailsTrack.value.scrollWidth
+  startAutoPlay()
+})
+
+onUnmounted(() => {
+  pauseAutoPlay()
 })
 </script>
 
 <style scoped>
-.image-carousel {
-  width: 100%;
+.product-image-carousel {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
 .main-image {
+  position: relative;
   width: 100%;
-  height: 400px;
-  overflow: hidden;
   border-radius: 8px;
-  background-color: #f5f5f5;
+  overflow: hidden;
+  background: #fff;
+  height: 400px;
 }
 
 .main-image img {
@@ -105,35 +172,34 @@ onMounted(() => {
 }
 
 .thumbnails-container {
-  position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  width: 100%;
+  position: relative;
 }
 
-.thumbnails-wrapper {
-  flex: 1;
+.thumbnails-track-container {
+  width: calc(500px + 40px); /* 5个缩略图的宽度(5 * 100px) + 间距 */
   overflow: hidden;
+  margin: 0 40px;
 }
 
-.thumbnails {
+.thumbnails-track {
   display: flex;
   gap: 10px;
-  transition: transform 0.3s ease;
+  width: max-content;
 }
 
 .thumbnail {
-  flex: 0 0 70px;
-  height: 70px;
+  flex: 0 0 90px;
+  height: 90px;
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.thumbnail.active {
-  border-color: #ff6f00;
+  transition: all 0.3s ease;
 }
 
 .thumbnail img {
@@ -142,31 +208,72 @@ onMounted(() => {
   object-fit: cover;
 }
 
-.nav-button {
-  width: 24px;
-  height: 70px;
+.thumbnail:hover {
+  border-color: #ff6f00;
+}
+
+.thumbnail.active {
+  border-color: #ff6f00;
+}
+
+.thumb-control {
+  position: absolute;
+  width: 32px;
+  height: 32px;
   border: none;
-  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
   color: #666;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
-.nav-button:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.2);
-  color: #333;
+.thumb-control.prev {
+  left: 0;
 }
 
-.nav-button:disabled {
+.thumb-control.next {
+  right: 0;
+}
+
+.thumb-control:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.2);
+  color: #ff6f00;
+  transform: scale(1.1);
+}
+
+.thumb-control:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.nav-button i {
-  font-size: 14px;
+/* 放大镜效果 */
+.zoom-lens {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border: 2px solid #fff;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: none;
+  pointer-events: none;
+}
+
+.zoomed-image {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 400px;
+  height: 400px;
+  background-size: 200%;
+  border: 1px solid #eee;
+  display: none;
+}
+
+.main-image:hover .zoomed-image {
+  display: block;
 }
 </style>

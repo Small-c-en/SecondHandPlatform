@@ -36,6 +36,7 @@
             :src="image.thumbnailUrl || 'https://via.placeholder.com/80x80?text=评价图'"
             alt="评价图片"
             class="review-image-thumbnail"
+            @click="openImagePreview(review.images, index)"
           />
         </div>
       </div>
@@ -66,11 +67,15 @@
       <span class="page-info">1 / {{ totalPages }}</span>
       <button class="page-button">下一页</button>
     </div>
+
+    <ImagePreview v-model="showPreview" :images="previewImages" :initial-index="previewIndex" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { ElRate } from 'element-plus'
+import ImagePreview from '../shared/ImagePreview.vue'
 
 // 模拟评价数据
 const totalReviews = ref(108)
@@ -107,6 +112,16 @@ const totalPages = computed(() => Math.ceil(totalReviews.value / reviewsPerPage.
 
 const getStars = (rating) => {
   return '★'.repeat(rating) + '☆'.repeat(5 - rating)
+}
+
+const showPreview = ref(false)
+const previewImages = ref([])
+const previewIndex = ref(0)
+
+const openImagePreview = (images, index) => {
+  previewImages.value = images
+  previewIndex.value = index
+  showPreview.value = true
 }
 </script>
 
