@@ -127,62 +127,93 @@ const applyFilter = (filterType, value) => {
 <style scoped>
 .filter-bar-sticky-wrapper {
   position: sticky;
-  top: 0; /* Adjust if you have a global fixed header above this */
+  top: 0;
   z-index: 900;
-  background-color: #ffffff; /* White background for the bar */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .filter-bar {
   display: flex;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  flex-wrap: wrap;
   align-items: center;
-  padding: 10px 15px;
-  gap: 20px; /* Gap between filter modules */
-  border-bottom: 1px solid #e0e0e0;
-  max-width: 1200px; /* Consistent with page max-width */
+  padding: 15px 20px;
+  gap: 24px;
+  border-bottom: 1px solid #eee;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .filter-module {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 14px;
 }
 
 .filter-module label {
-  color: #555;
+  color: #444;
   font-weight: 500;
   white-space: nowrap;
 }
 
-/* Category Select */
+/* Category Select with custom styling */
 #category-select {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   background-color: white;
   font-size: 14px;
-  min-width: 120px;
+  min-width: 130px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff5722' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+#category-select:hover {
+  border-color: #ff5722;
+}
+
+#category-select:focus {
+  outline: none;
+  border-color: #ff5722;
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
 }
 
 /* Price Inputs */
 .price-input {
-  width: 80px;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 90px;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   font-size: 14px;
   text-align: center;
+  transition: all 0.2s ease;
 }
+
+.price-input:hover {
+  border-color: #ff5722;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #ff5722;
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+}
+
 .price-input::-webkit-outer-spin-button,
 .price-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
 .price-input[type='number'] {
-  -moz-appearance: textfield; /* Firefox */
+  -moz-appearance: textfield;
 }
 
 /* Condition & Sort Options Tags/Buttons */
@@ -190,35 +221,34 @@ const applyFilter = (filterType, value) => {
 .sort-options {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .condition-tags button,
 .sort-options button {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 15px; /* Pill shape for conditions */
-  background-color: #f0f0f0;
-  color: #333;
+  padding: 6px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background-color: white;
+  color: #666;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.sort-options button {
-  border-radius: 4px; /* More standard button shape for sort */
+  font-weight: 500;
 }
 
 .condition-tags button:hover,
 .sort-options button:hover {
-  border-color: #aaa;
-  background-color: #e0e0e0;
+  border-color: #ff5722;
+  color: #ff5722;
+  background-color: rgba(255, 87, 34, 0.05);
 }
 
 .condition-tags button.active,
 .sort-options button.active {
-  background-color: #007bff; /* Blue highlight for active */
+  background-color: #ff5722;
   color: white;
-  border-color: #007bff;
+  border-color: #ff5722;
 }
 
 /* Responsive adjustments */
@@ -226,22 +256,42 @@ const applyFilter = (filterType, value) => {
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 15px;
+    gap: 16px;
+    padding: 12px 15px;
   }
+
   .filter-module {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
+
   .condition-tags,
   .sort-options {
-    flex-wrap: wrap; /* Allow tags to wrap on mobile */
+    width: 100%;
+    gap: 6px;
   }
+
+  .condition-tags button,
+  .sort-options button {
+    flex: 1;
+    min-width: calc(33.33% - 6px);
+    text-align: center;
+    padding: 8px 4px;
+  }
+
   .price-range-filter {
-    flex-direction: row; /* Keep price inputs somewhat inline */
+    flex-direction: row;
     align-items: center;
+    gap: 8px;
   }
+
   .price-input {
-    width: 60px;
+    width: calc(50% - 20px);
+  }
+
+  #category-select {
+    width: 100%;
   }
 }
 </style>

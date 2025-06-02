@@ -87,7 +87,7 @@ const formatNodeTime = (dateTimeString) => {
 
 <style scoped>
 .detail-card-gray {
-  background-color: #f8f9fa; /* 浅灰色背景 */
+  background-color: #ffffff; /* 浅灰色背景 */
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 15px; /* If used as a standalone card */
