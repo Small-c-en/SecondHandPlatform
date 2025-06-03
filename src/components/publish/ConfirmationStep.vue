@@ -1,150 +1,352 @@
 <template>
   <div class="confirmation-step">
-    <h4>商品信息汇总</h4>
-    <div class="summary-section">
-      <p><strong>标题:</strong> {{ formData.basicInfo?.title || '未填写' }}</p>
-      <p><strong>分类:</strong> {{ formData.basicInfo?.category || '未填写' }}</p>
-      <p><strong>价格:</strong> ¥{{ formData.basicInfo?.price || '0.00' }}</p>
-      <p><strong>原价:</strong> ¥{{ formData.basicInfo?.originalPrice || 'N/A' }}</p>
-      <p><strong>新旧程度:</strong> {{ formData.basicInfo?.condition || '未选择' }}</p>
-      <p><strong>地区:</strong> {{ formData.basicInfo?.location || '未填写' }}</p>
-      <p><strong>描述:</strong> {{ formData.detailedInfo?.description || '未填写' }}</p>
-      <!-- 可以添加品牌、型号等 -->
-    </div>
-    <div class="image-summary">
-      <h5>商品图片:</h5>
-      <div v-if="formData.images?.length" class="preview-gallery">
-        <img
-          v-for="(image, index) in formData.images"
-          :key="index"
-          :src="image.url"
-          :alt="image.name"
-        />
+    <div class="preview-card">
+      <h3>商品预览</h3>
+      <div class="preview-content">
+        <div class="preview-images">
+          <el-carousel :interval="4000" type="card" height="300px">
+            <el-carousel-item v-for="(image, index) in formData.images" :key="index">
+              <img :src="image.url" :alt="`商品图片${index + 1}`" />
+            </el-carousel-item>
+          </el-carousel>
+        </div>
+
+        <div class="preview-info">
+          <h2 class="product-title">{{ formData.basicInfo.title }}</h2>
+
+          <div class="price-section">
+            <div class="current-price">
+              <span class="label">售价：</span>
+              <span class="price">¥{{ formData.basicInfo.price }}</span>
+            </div>
+            <div class="original-price" v-if="formData.basicInfo.originalPrice">
+              <span class="label">原价：</span>
+              <span class="price">¥{{ formData.basicInfo.originalPrice }}</span>
+            </div>
+          </div>
+
+          <div class="tags-section">
+            <el-tag v-if="formData.basicInfo.condition" :type="getConditionTagType">
+              {{ getConditionLabel(formData.basicInfo.condition) }}
+            </el-tag>
+            <el-tag v-for="tag in formData.basicInfo.customTags" :key="tag" type="warning">
+              {{ tag }}
+            </el-tag>
+            <el-tag type="info" v-if="formData.detailedInfo.inspection === 'needed'">
+              提供验机
+            </el-tag>
+          </div>
+
+          <div class="info-section">
+            <h3>基础信息</h3>
+            <el-descriptions :column="1" border>
+              <el-descriptions-item label="商品标题">
+                {{ formData.basicInfo.title }}
+              </el-descriptions-item>
+              <el-descriptions-item label="商品分类">
+                {{ formData.basicInfo.categoryLabels?.join(' / ') }}
+              </el-descriptions-item>
+              <el-descriptions-item label="商品价格">
+                <div class="price-info">
+                  <span class="current-price">¥{{ formData.basicInfo.price }}</span>
+                  <span v-if="formData.basicInfo.originalPrice" class="original-price">
+                    原价: ¥{{ formData.basicInfo.originalPrice }}
+                  </span>
+                </div>
+              </el-descriptions-item>
+              <el-descriptions-item label="商品成色">
+                {{ formData.basicInfo.condition }}成新
+              </el-descriptions-item>
+              <el-descriptions-item label="发布状态">
+                {{ formData.basicInfo.publishStatus === 2 ? '立即发布' : '保存草稿' }}
+              </el-descriptions-item>
+              <el-descriptions-item label="商品标签" v-if="formData.basicInfo.customTags?.length">
+                <el-tag
+                  v-for="tag in formData.basicInfo.customTags"
+                  :key="tag"
+                  class="mx-1"
+                  size="small"
+                >
+                  {{ tag }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="商品所在地">
+                {{ formData.basicInfo.locationLabels?.join(' / ') }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+
+          <div class="info-group">
+            <h4>商品详情</h4>
+            <div class="info-item">
+              <span class="label">品牌：</span>
+              <span>{{ formData.detailedInfo.brand }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">型号：</span>
+              <span>{{ formData.detailedInfo.model }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">购买日期：</span>
+              <span>{{ formData.detailedInfo.purchaseDate }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">保修信息：</span>
+              <span>{{ getWarrantyLabel(formData.detailedInfo.warranty) }}</span>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h4>损耗情况</h4>
+            <div class="wear-conditions">
+              <el-tag
+                v-for="condition in formData.detailedInfo.wearCondition"
+                :key="condition"
+                :type="getWearConditionType(condition)"
+                class="wear-tag"
+              >
+                {{ getWearConditionLabel(condition) }}
+              </el-tag>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h4>规格参数</h4>
+            <p class="specs-text">{{ formData.detailedInfo.specs }}</p>
+          </div>
+
+          <div class="info-group">
+            <h4>商品描述</h4>
+            <p class="description-text">{{ formData.detailedInfo.description }}</p>
+          </div>
+        </div>
       </div>
-      <p v-else>未上传图片</p>
     </div>
-    <div class="actions">
-      <button class="btn-secondary" @click="$emit('go-back')">返回修改</button>
-      <button class="btn-primary" @click="submit">发布商品</button>
-    </div>
-    <div v-if="isLoading" class="loading-overlay">
-      <p>发布中...</p>
-      <!-- 简单加载提示 -->
+
+    <div class="action-buttons">
+      <el-button @click="$emit('go-back')">返回修改</el-button>
+      <el-button type="primary" @click="$emit('submit-publish')">确认发布</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
+import { computed } from 'vue'
 
-const props = defineProps({ formData: Object })
-const emit = defineEmits(['go-back', 'submit-publish'])
+const props = defineProps({
+  formData: {
+    type: Object,
+    required: true,
+  },
+})
 
-const isLoading = ref(false)
+defineEmits(['go-back', 'submit-publish'])
 
-const submit = async () => {
-  isLoading.value = true
-  // 实际API调用
-  // await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟网络延迟
-  emit('submit-publish')
-  // isLoading.value = false; // 成功后跳转，这个可能不需要了
+const getConditionTagType = computed(() => {
+  const condition = props.formData.basicInfo.condition
+  switch (condition) {
+    case 'new':
+      return 'success'
+    case 'like_new':
+    case 'excellent':
+      return ''
+    case 'good':
+      return 'warning'
+    default:
+      return 'info'
+  }
+})
+
+const getConditionLabel = (condition) => {
+  const labels = {
+    new: '全新',
+    like_new: '99新',
+    excellent: '95新',
+    good: '9成新',
+    fair: '8成新',
+    poor: '7成新及以下',
+  }
+  return labels[condition] || condition
+}
+
+const getWarrantyLabel = (warranty) => {
+  const labels = {
+    none: '无保修',
+    expired: '保修已过期',
+    official: '官方保修中',
+    extended: '延长保修中',
+  }
+  return labels[warranty] || warranty
+}
+
+const getWearConditionLabel = (condition) => {
+  const labels = {
+    screen: '屏幕有划痕',
+    shell: '外壳有磨损',
+    battery: '电池性能降低',
+    function: '功能完好',
+    accessories: '配件齐全',
+  }
+  return labels[condition] || condition
+}
+
+const getWearConditionType = (condition) => {
+  switch (condition) {
+    case 'function':
+    case 'accessories':
+      return 'success'
+    case 'battery':
+      return 'warning'
+    case 'screen':
+    case 'shell':
+      return 'danger'
+    default:
+      return 'info'
+  }
+}
+
+const getCategoryPath = (category) => {
+  return Array.isArray(category) ? category.join(' > ') : category
+}
+
+const getLocationPath = (location) => {
+  return Array.isArray(location) ? location.join(' ') : location
 }
 </script>
 
 <style scoped>
 .confirmation-step {
-  padding: 20px;
-  background-color: #f9f9f9;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.preview-card {
+  margin-bottom: 24px;
+}
+
+.preview-card h3 {
+  margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.preview-content {
+  display: grid;
+  gap: 24px;
+}
+
+.preview-images {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.preview-images :deep(.el-carousel__item img) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.product-title {
+  font-size: 24px;
+  margin: 0 0 20px;
+  color: #333;
+}
+
+.price-section {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.current-price .price {
+  font-size: 28px;
+  color: #ff5722;
+  font-weight: bold;
+}
+
+.original-price .price {
+  font-size: 16px;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.tags-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-group {
+  background: #f8f9fa;
+  padding: 16px;
   border-radius: 8px;
 }
 
-.confirmation-step h4 {
-  font-size: 18px;
-  margin-bottom: 15px;
+.info-group h4 {
+  margin: 0 0 12px;
   color: #333;
+  font-size: 16px;
 }
 
-.summary-section p {
+.info-item {
+  display: flex;
   margin-bottom: 8px;
   line-height: 1.6;
-  color: #555;
 }
 
-.summary-section p strong {
-  color: #333;
-  min-width: 80px; /* 对齐标签 */
-  display: inline-block;
+.info-item .label {
+  color: #666;
+  width: 100px;
+  flex-shrink: 0;
 }
 
-.image-summary {
-  margin-top: 20px;
-}
-
-.image-summary h5 {
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.preview-gallery {
+.wear-conditions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
-.preview-gallery img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid #ddd;
+.wear-tag {
+  margin: 0;
 }
 
-.actions {
-  margin-top: 30px;
+.specs-text,
+.description-text {
+  margin: 0;
+  line-height: 1.6;
+  color: #666;
+  white-space: pre-wrap;
+}
+
+.action-buttons {
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-}
-
-.actions button {
-  padding: 10px 25px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.btn-primary {
-  background-color: #ff6f00; /* 橙色按钮 */
-  color: white;
-  border: none;
-}
-
-.btn-secondary {
-  background-color: #6c757d; /* 灰色按钮 */
-  color: white;
-  border: none;
-}
-
-.loading-overlay {
-  position: fixed; /* 或 absolute 相对于父容器 */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #eee;
 }
 
-.loading-overlay p {
-  font-size: 18px;
-  color: #333;
-  padding: 20px;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+:deep(.el-carousel__item) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.el-tag) {
+  border-radius: 4px;
+  padding: 0 12px;
+  height: 28px;
+  line-height: 26px;
 }
 </style>

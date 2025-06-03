@@ -1,250 +1,317 @@
 <template>
   <div class="basic-info-form">
-    <div class="form-group">
-      <label for="category">商品分类</label>
-      <el-select
-        v-model="localBasicInfo.category"
-        placeholder="请选择分类"
-        class="category-select"
-        :class="{ 'is-error': errors.category }"
-        @change="
-          () => {
-            validateField('category')
-            emitUpdate()
-          }
-        "
-      >
-        <el-option-group v-for="group in categories" :key="group.label" :label="group.label">
-          <el-option
-            v-for="item in group.options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+    <el-form
+      ref="formRef"
+      :model="localInfo"
+      :rules="rules"
+      label-position="top"
+      class="publish-form"
+    >
+      <!-- 商品标题 -->
+      <el-form-item label="商品标题" prop="title">
+        <el-input
+          v-model="localInfo.title"
+          placeholder="请输入商品标题（2-50字）"
+          maxlength="50"
+          show-word-limit
+          @input="handleInput"
+        />
+      </el-form-item>
+
+      <!-- 商品分类 -->
+      <el-form-item label="商品分类" prop="category">
+        <el-cascader
+          v-model="localInfo.category"
+          :options="categoryOptions"
+          :props="{ expandTrigger: 'hover' }"
+          placeholder="请选择商品分类"
+          @change="handleInput"
+        />
+      </el-form-item>
+
+      <!-- 价格信息 -->
+      <div class="price-group">
+        <el-form-item label="售价" prop="price" class="price-item">
+          <el-input-number
+            v-model="localInfo.price"
+            :min="0"
+            :precision="2"
+            :step="10"
+            controls-position="right"
+            placeholder="请输入售价"
+            class="price-input"
+            @change="handleInput"
           />
-        </el-option-group>
-      </el-select>
-      <span class="error-message" v-if="errors.category">{{ errors.category }}</span>
-    </div>
-
-    <div class="form-group">
-      <label for="title">商品标题</label>
-      <el-input
-        v-model="localBasicInfo.title"
-        placeholder="请输入商品标题"
-        :class="{ 'is-error': errors.title }"
-        @input="
-          () => {
-            validateField('title')
-            emitUpdate()
-          }
-        "
-      />
-      <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
-    </div>
-
-    <div class="form-group price-group">
-      <div>
-        <label for="price">二手价格</label>
-        <el-input-number
-          v-model="localBasicInfo.price"
-          :min="0"
-          :precision="2"
-          :step="0.01"
-          :class="{ 'is-error': errors.price }"
-          @change="
-            () => {
-              validateField('price')
-              emitUpdate()
-            }
-          "
-        />
-        <span class="error-message" v-if="errors.price">{{ errors.price }}</span>
+        </el-form-item>
+        <el-form-item label="原价" prop="originalPrice" class="price-item">
+          <el-input-number
+            v-model="localInfo.originalPrice"
+            :min="0"
+            :precision="2"
+            :step="10"
+            controls-position="right"
+            placeholder="请输入原价"
+            class="price-input"
+            @change="handleInput"
+          />
+        </el-form-item>
       </div>
-      <div>
-        <label for="originalPrice">原价 (选填)</label>
-        <el-input-number
-          v-model="localBasicInfo.originalPrice"
-          :min="0"
-          :precision="2"
-          :step="0.01"
-          @change="emitUpdate"
-        />
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label>新旧程度</label>
-      <div class="condition-buttons">
-        <el-radio-group
-          v-model="localBasicInfo.condition"
-          @change="
-            () => {
-              validateField('condition')
-              emitUpdate()
-            }
-          "
-        >
-          <el-radio-button
-            v-for="condition in conditions"
-            :key="condition.value"
-            :label="condition.value"
-          >
-            {{ condition.label }}
-          </el-radio-button>
+      <!-- 商品成色 -->
+      <el-form-item label="商品成色" prop="condition">
+        <el-radio-group v-model="localInfo.condition" @change="handleInput">
+          <el-radio label="95">95成新</el-radio>
+          <el-radio label="9">9成新</el-radio>
+          <el-radio label="8">8成新</el-radio>
+          <el-radio label="7">7成新及以下</el-radio>
         </el-radio-group>
-      </div>
-      <span class="error-message" v-if="errors.condition">{{ errors.condition }}</span>
-    </div>
+      </el-form-item>
 
-    <div class="form-group">
-      <label for="location">所在地区</label>
-      <el-cascader
-        v-model="localBasicInfo.location"
-        :options="areaOptions"
-        :props="{
-          expandTrigger: 'hover',
-          value: 'code',
-          label: 'name',
-          children: 'children',
-        }"
-        placeholder="请选择地区"
-        :class="{ 'is-error': errors.location }"
-        @change="
-          () => {
-            validateField('location')
-            emitUpdate()
-          }
-        "
-      />
-      <span class="error-message" v-if="errors.location">{{ errors.location }}</span>
-    </div>
+      <!-- 发布状态 -->
+      <el-form-item label="发布状态" prop="publishStatus">
+        <el-radio-group v-model="localInfo.publishStatus" @change="handleInput">
+          <el-radio :label="2">立即发布</el-radio>
+          <el-radio :label="1">保存草稿</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <!-- 自定义标签 -->
+      <el-form-item label="自定义标签（最多2个）" prop="customTags">
+        <el-select
+          v-model="localInfo.customTags"
+          multiple
+          filterable
+          allow-create
+          :max="2"
+          placeholder="最多可添加2个标签"
+          @change="handleInput"
+        >
+          <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
+        </el-select>
+      </el-form-item>
+
+      <!-- 商品所在地 -->
+      <el-form-item label="商品所在地" prop="location">
+        <el-cascader
+          v-model="localInfo.location"
+          :options="provinceList"
+          :props="{
+            expandTrigger: 'hover',
+            value: 'value',
+            label: 'label',
+            children: 'children',
+            checkStrictly: false,
+            emitPath: true,
+          }"
+          placeholder="请选择商品所在地"
+          :show-all-levels="true"
+          filterable
+          clearable
+          @change="handleInput"
+        />
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
 <script setup>
-import { reactive, defineProps, defineEmits, watch, ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import areaData from '@/data/area-data.js' // 需要创建这个文件
+import { ref, reactive, defineProps, defineEmits, watch, onMounted } from 'vue'
+import { areaList as chinaAreaList } from '@vant/area-data'
 
-const props = defineProps({ basicInfo: Object })
-const emit = defineEmits(['update:basicInfo'])
+const props = defineProps({
+  basicInfo: {
+    type: Object,
+    required: true,
+  },
+})
 
-const localBasicInfo = reactive({
-  category: '',
+const emit = defineEmits(['update:basic-info'])
+
+const formRef = ref(null)
+
+// 本地状态
+const localInfo = reactive({
   title: '',
+  category: [],
   price: null,
   originalPrice: null,
   condition: '',
+  publishStatus: 2,
+  customTags: [],
   location: [],
-  ...props.basicInfo,
 })
 
-const errors = reactive({
-  category: '',
-  title: '',
-  price: '',
-  condition: '',
-  location: '',
-})
+// 处理地区数据
+const provinceList = ref([])
 
-const categories = [
+// 初始化省份数据并预加载所有城市数据
+const initProvinceData = () => {
+  // 初始化省份列表
+  provinceList.value = Object.entries(chinaAreaList.province_list).map(([code, name]) => ({
+    value: code,
+    label: name,
+    children: [], // 添加children属性以支持级联
+  }))
+
+  // 为每个省份预加载城市数据
+  provinceList.value.forEach((province) => {
+    const cities = Object.entries(chinaAreaList.city_list)
+      .filter(([code]) => code.startsWith(province.value.slice(0, 2)))
+      .map(([code, name]) => ({
+        value: code,
+        label: name,
+        children: [], // 为城市预留区县数据位置
+      }))
+
+    // 为每个城市预加载区县数据
+    cities.forEach((city) => {
+      const districts = Object.entries(chinaAreaList.county_list)
+        .filter(([code]) => code.startsWith(city.value.slice(0, 4)))
+        .map(([code, name]) => ({
+          value: code,
+          label: name,
+        }))
+      city.children = districts
+    })
+
+    province.children = cities
+  })
+}
+
+// 监听地区选择变化
+const handleAreaChange = (value) => {
+  handleInput()
+}
+
+// 获取地区标签
+const getLocationLabels = (codes) => {
+  if (!codes || codes.length === 0) return []
+
+  const labels = []
+  const [provinceCode, cityCode, areaCode] = codes
+
+  if (provinceCode) {
+    labels.push(chinaAreaList.province_list[provinceCode])
+  }
+
+  if (cityCode) {
+    labels.push(chinaAreaList.city_list[cityCode])
+  }
+
+  if (areaCode) {
+    labels.push(chinaAreaList.county_list[areaCode])
+  }
+
+  return labels
+}
+
+// 监听props变化
+watch(
+  () => props.basicInfo,
+  (newVal) => {
+    if (newVal && Object.keys(newVal).length > 0) {
+      Object.assign(localInfo, newVal)
+    }
+  },
+  { deep: true, immediate: true },
+)
+
+// 处理输入更新
+const handleInput = () => {
+  emit('update:basic-info', {
+    title: localInfo.title,
+    category: localInfo.category,
+    categoryLabels: getCategoryLabels(localInfo.category),
+    price: localInfo.price,
+    originalPrice: localInfo.originalPrice,
+    condition: localInfo.condition,
+    publishStatus: localInfo.publishStatus,
+    customTags: localInfo.customTags,
+    location: localInfo.location,
+    locationLabels: getLocationLabels(localInfo.location),
+  })
+}
+
+// 获取分类标签
+const getCategoryLabels = (categoryCodes) => {
+  if (!categoryCodes || categoryCodes.length === 0) return []
+
+  const result = []
+  let currentOptions = categoryOptions
+
+  for (const code of categoryCodes) {
+    const option = currentOptions.find((opt) => opt.value === code)
+    if (option) {
+      result.push(option.label)
+      currentOptions = option.children || []
+    }
+  }
+
+  return result
+}
+
+// 分类选项
+const categoryOptions = [
   {
-    label: '电子数码',
-    options: [
-      { value: 'mobile', label: '手机' },
+    value: 'electronics',
+    label: '电子产品',
+    children: [
+      { value: 'phone', label: '手机' },
       { value: 'computer', label: '电脑' },
-      { value: 'camera', label: '相机' },
       { value: 'accessories', label: '配件' },
     ],
   },
   {
-    label: '家用电器',
-    options: [
-      { value: 'tv', label: '电视' },
-      { value: 'refrigerator', label: '冰箱' },
-      { value: 'washer', label: '洗衣机' },
-      { value: 'airconditioner', label: '空调' },
+    value: 'clothing',
+    label: '服装',
+    children: [
+      { value: 'men', label: '男装' },
+      { value: 'women', label: '女装' },
+      { value: 'children', label: '童装' },
     ],
   },
   {
-    label: '服饰箱包',
-    options: [
-      { value: 'clothing', label: '服装' },
-      { value: 'shoes', label: '鞋靴' },
-      { value: 'bags', label: '箱包' },
-      { value: 'accessories', label: '配饰' },
+    value: 'books',
+    label: '图书',
+    children: [
+      { value: 'textbooks', label: '教材' },
+      { value: 'literature', label: '文学' },
+      { value: 'other_books', label: '其他' },
     ],
   },
 ]
 
-const conditions = [
-  { label: '全新', value: 'new' },
-  { label: '99新', value: '99new' },
-  { label: '95新', value: '95new' },
-  { label: '9成新', value: '90new' },
-  { label: '8成新', value: '80new' },
-  { label: '7成新及以下', value: '70new' },
-]
+// 常用标签
+const commonTags = ['全新未拆封', '带包装', '保修中', '无磕碰', '性价比高']
 
-const areaOptions = ref(areaData)
+// 表单验证规则
+const rules = {
+  title: [
+    { required: true, message: '请输入商品标题', trigger: 'blur' },
+    { min: 2, max: 50, message: '标题长度在2-50个字符之间', trigger: 'blur' },
+  ],
+  category: [{ required: true, message: '请选择商品分类', trigger: 'change' }],
+  price: [{ required: true, message: '请输入售价', trigger: 'blur' }],
+  condition: [{ required: true, message: '请选择商品成色', trigger: 'change' }],
+  location: [{ required: true, message: '请选择商品所在地', trigger: 'change' }],
+  publishStatus: [{ required: true, message: '请选择发布状态', trigger: 'change' }],
+}
 
-const validateField = (field) => {
-  errors[field] = ''
-
-  switch (field) {
-    case 'category':
-      if (!localBasicInfo.category) {
-        errors.category = '请选择商品分类'
-      }
-      break
-    case 'title':
-      if (!localBasicInfo.title) {
-        errors.title = '请输入商品标题'
-      } else if (localBasicInfo.title.length < 5) {
-        errors.title = '标题至少需要5个字符'
-      }
-      break
-    case 'price':
-      if (!localBasicInfo.price) {
-        errors.price = '请输入商品价格'
-      } else if (localBasicInfo.price <= 0) {
-        errors.price = '价格必须大于0'
-      }
-      break
-    case 'condition':
-      if (!localBasicInfo.condition) {
-        errors.condition = '请选择商品新旧程度'
-      }
-      break
-    case 'location':
-      if (!localBasicInfo.location || localBasicInfo.location.length === 0) {
-        errors.location = '请选择所在地区'
-      }
-      break
+// 表单验证方法
+const validateAll = async () => {
+  if (!formRef.value) return false
+  try {
+    await formRef.value.validate()
+    return true
+  } catch {
+    return false
   }
 }
 
-const validateAll = () => {
-  validateField('category')
-  validateField('title')
-  validateField('price')
-  validateField('condition')
-  validateField('location')
-
-  return !Object.values(errors).some((error) => error !== '')
-}
-
-watch(
-  () => props.basicInfo,
-  (newVal) => {
-    Object.assign(localBasicInfo, newVal)
-  },
-  { deep: true },
-)
-
-const emitUpdate = () => {
-  emit('update:basicInfo', { ...localBasicInfo })
-}
+// 组件挂载时初始化省份数据
+onMounted(() => {
+  initProvinceData()
+})
 
 defineExpose({
   validateAll,
@@ -252,19 +319,16 @@ defineExpose({
 </script>
 
 <style scoped>
-.form-group {
-  margin-bottom: 24px;
+.basic-info-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.category-select {
-  width: 100%;
+.publish-form {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .price-group {
@@ -272,32 +336,52 @@ defineExpose({
   gap: 20px;
 }
 
-.price-group > div {
-  flex: 1;
+.price-item {
+  flex: 0 0 auto;
+  width: 200px;
 }
 
-.condition-buttons {
-  margin-top: 8px;
+.price-input {
+  width: 100%;
 }
 
-.error-message {
-  color: #f56c6c;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
+.custom-tag {
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 
-:deep(.el-input.is-error .el-input__wrapper),
-:deep(.el-select.is-error .el-input__wrapper),
-:deep(.el-cascader.is-error .el-input__wrapper) {
-  box-shadow: 0 0 0 1px #f56c6c inset;
+.tag-input {
+  width: 100px;
+  margin-right: 8px;
+  vertical-align: bottom;
 }
 
-:deep(.el-radio-button__inner) {
-  padding: 8px 15px;
+.button-new-tag {
+  margin-bottom: 8px;
 }
 
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #333;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-select),
 :deep(.el-cascader) {
   width: 100%;
+}
+
+:deep(.el-input-number) {
+  width: 100%;
+}
+
+:deep(.el-radio-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+:deep(.el-form-item__content) {
+  flex-wrap: wrap;
 }
 </style>

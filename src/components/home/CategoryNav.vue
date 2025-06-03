@@ -146,7 +146,7 @@ const categories = [
   display: flex;
   align-items: center;
   padding: 12px 24px;
-  color: #333;
+  color: #333333c8;
   text-decoration: none;
   transition: all 0.3s ease;
 }

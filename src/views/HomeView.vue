@@ -402,7 +402,7 @@ const filteredProducts = computed(() => {
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 20px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   margin-top: 60px;
 }
 
@@ -422,8 +422,8 @@ const filteredProducts = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 60px;
-  margin-bottom: 20px;
+  margin-top: 20px;
+  margin-bottom: 30px;
 }
 
 .section-header h2 {

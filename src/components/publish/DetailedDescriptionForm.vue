@@ -1,175 +1,190 @@
 <template>
   <div class="detailed-description-form">
-    <div class="form-content">
-      <div class="form-section rich-text-editor">
-        <label>图文描述</label>
+    <el-form
+      ref="formRef"
+      :model="localInfo"
+      :rules="rules"
+      label-position="top"
+      class="publish-form"
+    >
+      <!-- 商品描述 -->
+      <el-form-item label="商品描述" prop="description" class="full-width">
         <el-input
+          v-model="localInfo.description"
           type="textarea"
-          v-model="localDetailedInfo.description"
           :rows="6"
-          :class="{ 'is-error': errors.description }"
-          placeholder="请输入商品详情描述，建议从以下方面描述：
-1. 商品的基本信息
-2. 商品的具体参数
-3. 商品的使用感受
-4. 商品的成色描述"
-          @input="validateField('description')"
+          placeholder="请详细描述商品的使用感受、配置参数、存在的问题等（10-2000字）"
+          maxlength="2000"
+          show-word-limit
+          resize="none"
+          class="description-textarea"
+          @input="handleInput"
         />
-        <span class="error-message" v-if="errors.description">{{ errors.description }}</span>
+      </el-form-item>
+
+      <div class="form-grid">
+        <!-- 品牌 -->
+        <el-form-item label="品牌" prop="brand">
+          <el-input
+            v-model="localInfo.brand"
+            placeholder="请输入品牌名称"
+            clearable
+            class="medium-input"
+            @input="handleInput"
+          />
+        </el-form-item>
+
+        <!-- 型号 -->
+        <el-form-item label="型号" prop="model">
+          <el-input
+            v-model="localInfo.model"
+            placeholder="请输入具体型号"
+            clearable
+            class="medium-input"
+            @input="handleInput"
+          />
+        </el-form-item>
       </div>
 
-      <div class="form-section parameter-inputs">
-        <label>参数填写</label>
-        <div class="parameter-group">
-          <div class="parameter-item">
-            <label>品牌</label>
-            <el-input
-              v-model="localDetailedInfo.brand"
-              placeholder="请输入品牌"
-              :class="{ 'is-error': errors.brand }"
-              @input="validateField('brand')"
-            />
-            <span class="error-message" v-if="errors.brand">{{ errors.brand }}</span>
-          </div>
+      <!-- 规格参数 -->
+      <el-form-item label="规格参数" prop="specs" class="full-width">
+        <el-input
+          v-model="localInfo.specs"
+          type="textarea"
+          :rows="4"
+          placeholder="请输入商品的具体规格参数，如：容量、尺寸、配置等"
+          maxlength="1000"
+          show-word-limit
+          resize="none"
+          class="description-textarea"
+          @input="handleInput"
+        />
+      </el-form-item>
 
-          <div class="parameter-item">
-            <label>型号</label>
-            <el-input
-              v-model="localDetailedInfo.model"
-              placeholder="请输入型号"
-              :class="{ 'is-error': errors.model }"
-              @input="validateField('model')"
-            />
-            <span class="error-message" v-if="errors.model">{{ errors.model }}</span>
-          </div>
+      <div class="form-grid">
+        <!-- 购买日期 -->
+        <el-form-item label="购买日期" prop="purchaseDate">
+          <el-date-picker
+            v-model="localInfo.purchaseDate"
+            type="date"
+            placeholder="请选择购买日期"
+            :disabled-date="disableFutureDates"
+            value-format="YYYY-MM-DD"
+            class="medium-input"
+            @change="handleInput"
+          />
+        </el-form-item>
 
-          <div class="parameter-item">
-            <label>规格</label>
-            <el-input
-              v-model="localDetailedInfo.specs"
-              placeholder="请输入规格（如：尺寸、容量等）"
-              :class="{ 'is-error': errors.specs }"
-              @input="validateField('specs')"
-            />
-            <span class="error-message" v-if="errors.specs">{{ errors.specs }}</span>
-          </div>
-
-          <div class="parameter-item">
-            <label>购买日期</label>
-            <el-date-picker
-              v-model="localDetailedInfo.purchaseDate"
-              type="date"
-              placeholder="请选择购买日期"
-              :class="{ 'is-error': errors.purchaseDate }"
-              @change="validateField('purchaseDate')"
-            />
-            <span class="error-message" v-if="errors.purchaseDate">{{ errors.purchaseDate }}</span>
-          </div>
-
-          <div class="parameter-item">
-            <label>保修情况</label>
-            <el-select
-              v-model="localDetailedInfo.warranty"
-              placeholder="请选择保修情况"
-              :class="{ 'is-error': errors.warranty }"
-              @change="validateField('warranty')"
-            >
-              <el-option label="无保修" value="none" />
-              <el-option label="保修中" value="active" />
-              <el-option label="过保修期" value="expired" />
-            </el-select>
-            <span class="error-message" v-if="errors.warranty">{{ errors.warranty }}</span>
-          </div>
-        </div>
+        <!-- 保修信息 -->
+        <el-form-item label="保修信息" prop="warranty">
+          <el-select
+            v-model="localInfo.warranty"
+            placeholder="请选择保修情况"
+            class="medium-input"
+            @change="handleInput"
+          >
+            <el-option label="无保修" value="none" />
+            <el-option label="保修已过期" value="expired" />
+            <el-option label="官方保修中" value="official" />
+            <el-option label="延长保修中" value="extended" />
+          </el-select>
+        </el-form-item>
       </div>
-    </div>
+
+      <!-- 损耗情况 -->
+      <el-form-item label="损耗情况" prop="wearCondition" class="full-width">
+        <el-checkbox-group v-model="localInfo.wearCondition" @change="handleInput">
+          <div class="wear-condition-group">
+            <el-checkbox label="screen">屏幕有划痕</el-checkbox>
+            <el-checkbox label="shell">外壳有磨损</el-checkbox>
+            <el-checkbox label="battery">电池性能降低</el-checkbox>
+            <el-checkbox label="function">功能完好</el-checkbox>
+            <el-checkbox label="accessories">配件齐全</el-checkbox>
+          </div>
+        </el-checkbox-group>
+      </el-form-item>
+
+      <!-- 验机服务 -->
+      <el-form-item label="验机服务" prop="inspection" class="full-width">
+        <el-radio-group v-model="localInfo.inspection" @change="handleInput">
+          <el-radio label="needed">需要提供验机服务</el-radio>
+          <el-radio label="not_needed">无需验机服务</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
 <script setup>
-import { reactive, defineProps, defineEmits, watch } from 'vue'
+import { ref, reactive, defineProps, defineEmits, watch } from 'vue'
 
-const props = defineProps({ detailedInfo: Object })
+const props = defineProps({
+  detailedInfo: {
+    type: Object,
+    required: true,
+  },
+})
+
 const emit = defineEmits(['update:detailedInfo'])
+const formRef = ref(null)
 
-const localDetailedInfo = reactive({
+// 本地状态
+const localInfo = reactive({
   description: '',
   brand: '',
   model: '',
   specs: '',
   purchaseDate: '',
   warranty: '',
+  wearCondition: [],
+  inspection: 'not_needed',
   ...props.detailedInfo,
 })
 
-const errors = reactive({
-  description: '',
-  brand: '',
-  model: '',
-  specs: '',
-  purchaseDate: '',
-  warranty: '',
-})
-
-const validateField = (field) => {
-  errors[field] = ''
-
-  switch (field) {
-    case 'description':
-      if (!localDetailedInfo.description) {
-        errors.description = '请填写商品描述'
-      } else if (localDetailedInfo.description.length < 20) {
-        errors.description = '描述至少需要20个字符'
-      }
-      break
-    case 'brand':
-      if (!localDetailedInfo.brand) {
-        errors.brand = '请填写品牌'
-      }
-      break
-    case 'model':
-      if (!localDetailedInfo.model) {
-        errors.model = '请填写型号'
-      }
-      break
-    case 'specs':
-      if (!localDetailedInfo.specs) {
-        errors.specs = '请填写规格'
-      }
-      break
-    case 'purchaseDate':
-      if (!localDetailedInfo.purchaseDate) {
-        errors.purchaseDate = '请选择购买日期'
-      }
-      break
-    case 'warranty':
-      if (!localDetailedInfo.warranty) {
-        errors.warranty = '请选择保修情况'
-      }
-      break
-  }
-
-  emit('update:detailedInfo', { ...localDetailedInfo })
-}
-
-const validateAll = () => {
-  validateField('description')
-  validateField('brand')
-  validateField('model')
-  validateField('specs')
-  validateField('purchaseDate')
-  validateField('warranty')
-
-  return !Object.values(errors).some((error) => error !== '')
-}
-
+// 监听props变化
 watch(
   () => props.detailedInfo,
   (newVal) => {
-    Object.assign(localDetailedInfo, newVal)
+    Object.assign(localInfo, newVal)
   },
   { deep: true },
 )
+
+// 处理输入更新
+const handleInput = () => {
+  emit('update:detailedInfo', { ...localInfo })
+}
+
+// 表单验证规则
+const rules = {
+  description: [
+    { required: true, message: '请输入商品描述', trigger: 'blur' },
+    { min: 10, max: 2000, message: '描述长度在10-2000个字符之间', trigger: 'blur' },
+  ],
+  brand: [{ required: true, message: '请输入品牌', trigger: 'blur' }],
+  model: [{ required: true, message: '请输入型号', trigger: 'blur' }],
+  specs: [{ required: true, message: '请输入规格参数', trigger: 'blur' }],
+  purchaseDate: [{ required: true, message: '请选择购买日期', trigger: 'change' }],
+  warranty: [{ required: true, message: '请选择保修情况', trigger: 'change' }],
+  wearCondition: [{ required: true, message: '请选择损耗情况', trigger: 'change' }],
+  inspection: [{ required: true, message: '请选择是否需要验机服务', trigger: 'change' }],
+}
+
+// 禁用未来日期
+const disableFutureDates = (date) => {
+  return date > new Date()
+}
+
+// 表单验证方法
+const validateAll = async () => {
+  if (!formRef.value) return false
+  try {
+    await formRef.value.validate()
+    return true
+  } catch {
+    return false
+  }
+}
 
 defineExpose({
   validateAll,
@@ -178,74 +193,31 @@ defineExpose({
 
 <style scoped>
 .detailed-description-form {
-  width: 100%;
-}
-
-.form-content {
-  display: flex;
-  gap: 24px;
-}
-
-.form-section {
-  background: #fff5f0; /* Light orange background */
-  padding: 20px;
+  background: #fff;
   border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-.rich-text-editor {
-  flex: 1;
-  min-width: 400px;
+.publish-form {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.parameter-inputs {
-  width: 400px;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.form-section label {
-  display: block;
-  margin-bottom: 10px;
+.full-width {
+  grid-column: 1 / -1;
+}
+
+:deep(.el-form-item__label) {
   font-weight: 500;
   color: #333;
-}
-
-.rich-text-editor :deep(.el-textarea__inner) {
-  height: 400px !important; /* Fixed height */
-  resize: none; /* Disable resize */
-  padding: 15px;
-  line-height: 1.6;
-}
-
-.rich-text-editor :deep(.el-textarea.is-error .el-textarea__inner) {
-  box-shadow: 0 0 0 1px #f56c6c inset;
-}
-
-.parameter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.parameter-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.parameter-item label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.error-message {
-  color: #f56c6c;
-  font-size: 12px;
-}
-
-:deep(.el-input.is-error .el-input__wrapper),
-:deep(.el-select.is-error .el-input__wrapper),
-:deep(.el-date-picker.is-error .el-input__wrapper) {
-  box-shadow: 0 0 0 1px #f56c6c inset;
 }
 
 :deep(.el-input__wrapper),
@@ -254,7 +226,40 @@ defineExpose({
   width: 100%;
 }
 
-:deep(.el-select .el-input) {
+:deep(.el-checkbox-group) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+:deep(.el-radio-group) {
+  display: flex;
+  gap: 20px;
+}
+
+:deep(.el-textarea__inner) {
+  font-family: inherit;
+}
+
+:deep(.el-form-item.is-error .el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-color-danger) inset;
+}
+
+.medium-input {
+  width: 300px;
+}
+
+.description-textarea {
   width: 100%;
+}
+
+.wear-condition-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+:deep(.el-form-item__content) {
+  flex-wrap: wrap;
 }
 </style>

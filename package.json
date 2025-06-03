@@ -11,7 +11,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vant/area-data": "^2.0.0",
     "axios": "^1.9.0",
+    "china-area-data": "^5.0.1",
     "element-plus": "^2.9.11",
     "pinia": "^3.0.1",
     "qrcode": "^1.5.4",

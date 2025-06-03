@@ -67,10 +67,10 @@ const getStepLabel = (stepNumber) => {
 .step-number {
   width: 70px;
   height: 70px;
-  font-size: 25px;
+  font-size: 20px;
   border-radius: 50%;
   background-color: #fff;
-  border: 2px solid #adb5bd; /* 未完成步骤的数字默认边框 */
+  border: 2px solid #adb5bd18; /* 未完成步骤的数字默认边框 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +84,7 @@ const getStepLabel = (stepNumber) => {
 }
 
 .step-label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   transition: color 0.3s;
 }
@@ -97,7 +97,7 @@ const getStepLabel = (stepNumber) => {
   right: 50%; /* 从当前步骤的中心开始向左延伸 */
   width: 100%; /* 延伸到上一个步骤 */
   height: 4px;
-  background-color: #dee2e6; /* 默认连接线颜色 */
+  background-color: #adb5bd18; /* 默认连接线颜色 */
   z-index: 1; /* 在步骤数字之后 */
 }
 
@@ -108,35 +108,35 @@ const getStepLabel = (stepNumber) => {
 
 /* 已完成步骤的样式 */
 .step.completed .step-number {
-  border-color: #a7d7c5; /* 浅绿色 - 已完成 */
-  background-color: #a7d7c5;
-  color: #fff;
+  border-color: #7ac051; /* 浅绿色 - 已完成 */
+  background-color: #e1f4d6;
+  color: #7ac051;
 }
 .step.completed .step-label {
-  color: #a7d7c5; /* 浅绿色 */
+  color: #7ac051; /* 浅绿色 */
 }
 /* 已完成步骤（第一个除外）之前的连接线 */
 .step.completed:not(:first-child)::before {
-  background-color: #a7d7c5; /* 浅绿色连接线 */
+  background-color: #e1f4d6; /* 浅绿色连接线 */
 }
 
 /* 当前激活步骤的样式 */
 .step.active .step-number {
-  border-color: #a0cfff; /* 浅蓝色 - 当前激活 */
-  background-color: #a0cfff;
+  border-color: #ed7a2e; /* 浅蓝色 - 当前激活 */
+  background-color: #ed7a2ef1;
   color: #fff;
 }
 .step.active .step-label {
-  color: #a0cfff; /* 浅蓝色 */
+  color: #ed7a2ef1; /* 浅蓝色 */
   font-weight: bold;
 }
 /* 当前激活步骤（第一个除外）之前的连接线应为已完成状态 */
 .step.active:not(:first-child)::before {
-  background-color: #a7d7c5; /* 浅绿色连接线 */
+  background-color: #e1f4d6; /* 浅绿色连接线 */
 }
 
 /* 如果当前激活的步骤也是最后一个步骤（即已完成），确保其之前的连接线是浅绿色 */
 .step.active.completed:not(:first-child)::before {
-  background-color: #a7d7c5;
+  background-color: #e1f4d6;
 }
 </style>

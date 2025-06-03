@@ -1,63 +1,74 @@
 <template>
   <div class="image-upload-area">
-    <div class="upload-header">
-      <h3>商品图片</h3>
-      <span class="required-tip">最多上传9张图片，至少上传1张</span>
-    </div>
+    <h3 class="upload-title">商品图片</h3>
+    <p class="upload-tip">第一张图片将作为商品主图（最多上传9张，每张不超过5MB）</p>
 
-    <div class="upload-content" :class="{ 'has-error': showError }">
-      <div class="upload-grid">
-        <el-upload
-          v-model:file-list="fileList"
-          action="/api/upload"
-          list-type="picture-card"
-          :on-preview="handlePictureCardPreview"
-          :on-remove="handleRemove"
-          :on-change="handleChange"
-          :limit="9"
-          :class="{ 'hide-upload': fileList.length >= 9 }"
-        >
-          <div class="upload-trigger">
-            <i class="el-icon-plus upload-icon"></i>
-            <span class="upload-text">点击上传</span>
-          </div>
-        </el-upload>
-      </div>
+    <el-upload
+      v-model:file-list="fileList"
+      action="/api/upload"
+      list-type="picture-card"
+      :limit="9"
+      :on-preview="handlePictureCardPreview"
+      :on-remove="handleRemove"
+      :before-upload="beforeUpload"
+      :on-success="handleSuccess"
+      :on-error="handleError"
+    >
+      <el-icon><Plus /></el-icon>
+    </el-upload>
 
-      <span class="error-message" v-if="showError">请至少上传1张商品图片</span>
-    </div>
-
-    <el-dialog v-model="dialogVisible">
-      <img w-full :src="dialogImageUrl" alt="Preview Image" />
+    <el-dialog v-model="dialogVisible" width="800px">
+      <img w-full :src="dialogImageUrl" alt="Preview Image" style="width: 100%" />
     </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, defineProps, defineEmits, watch } from 'vue'
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   images: {
     type: Array,
-    default: () => [],
+    required: true,
   },
 })
 
 const emit = defineEmits(['update:images'])
+
+const fileList = ref([])
 const dialogImageUrl = ref('')
 const dialogVisible = ref(false)
-const fileList = ref([])
-const showError = ref(false)
 
-const handleRemove = (uploadFile) => {
-  const updatedImages = fileList.value
-    .filter((file) => file.uid !== uploadFile.uid)
-    .map((file) => ({
-      url: file.url,
+// 初始化文件列表
+watch(
+  () => props.images,
+  (newImages) => {
+    fileList.value = newImages.map((img, index) => ({
+      name: `image-${index + 1}`,
+      url: img.url,
+      status: 'success',
+    }))
+  },
+  { immediate: true },
+)
+
+// 监听文件列表变化
+watch(
+  fileList,
+  (newFileList) => {
+    const images = newFileList.map((file) => ({
+      url: file.url || URL.createObjectURL(file.raw),
       name: file.name,
     }))
-  emit('update:images', updatedImages)
-  validateImages()
+    emit('update:images', images)
+  },
+  { deep: true },
+)
+
+const handleRemove = (uploadFile) => {
+  fileList.value = fileList.value.filter((file) => file.uid !== uploadFile.uid)
 }
 
 const handlePictureCardPreview = (uploadFile) => {
@@ -65,125 +76,75 @@ const handlePictureCardPreview = (uploadFile) => {
   dialogVisible.value = true
 }
 
-const handleChange = (uploadFile, uploadFiles) => {
-  if (uploadFiles.length > 9) {
-    uploadFiles.pop() // Remove the last file if exceeding limit
-    return
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt5M = file.size / 1024 / 1024 < 5
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件！')
+    return false
   }
-
-  fileList.value = uploadFiles
-  const images = uploadFiles.map((file) => ({
-    url: file.url,
-    name: file.name,
-  }))
-  emit('update:images', images)
-  validateImages()
+  if (!isLt5M) {
+    ElMessage.error('图片大小不能超过 5MB！')
+    return false
+  }
+  return true
 }
 
-const validateImages = () => {
-  showError.value = fileList.value.length === 0
-  return !showError.value
+const handleSuccess = (response, uploadFile) => {
+  // 这里应该处理实际的上传响应
+  // 目前模拟上传成功
+  uploadFile.url = URL.createObjectURL(uploadFile.raw)
+  ElMessage.success('上传成功')
 }
 
-// 监听外部传入的images变化
-watch(
-  () => props.images,
-  (newImages) => {
-    if (newImages && newImages.length > 0) {
-      fileList.value = newImages.map((img) => ({
-        name: img.name,
-        url: img.url,
-      }))
-    }
-  },
-  { deep: true },
-)
-
-defineExpose({
-  validateImages,
-})
+const handleError = () => {
+  ElMessage.error('上传失败，请重试')
+}
 </script>
 
 <style scoped>
 .image-upload-area {
-  margin-top: 24px;
-}
-
-.upload-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.upload-header h3 {
-  margin: 0;
-  font-size: 16px;
-  color: #333;
-}
-
-.required-tip {
-  color: #999;
-  font-size: 14px;
-}
-
-.upload-content {
+  margin: 20px 0;
   padding: 20px;
-  background: #fff5f0;
-  border-radius: 8px;
-  border: 1px solid transparent;
-}
-
-.upload-content.has-error {
-  border-color: #f56c6c;
-}
-
-.error-message {
-  display: block;
-  margin-top: 8px;
-  color: #f56c6c;
-  font-size: 12px;
-}
-
-.upload-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-:deep(.el-upload--picture-card) {
-  width: 148px;
-  height: 148px;
-  line-height: 148px;
-  border: 1px dashed #d9d9d9;
+  background-color: #fff;
   border-radius: 8px;
 }
 
-:deep(.el-upload-list--picture-card .el-upload-list__item) {
-  width: 148px;
-  height: 148px;
-  border-radius: 8px;
-}
-
-.upload-trigger {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #8c939d;
-}
-
-.upload-icon {
-  font-size: 28px;
+.upload-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
   margin-bottom: 8px;
 }
 
-.upload-text {
-  font-size: 12px;
+.upload-tip {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
 }
 
-:deep(.hide-upload .el-upload--picture-card) {
-  display: none;
+:deep(.el-upload--picture-card) {
+  --el-upload-picture-card-size: 150px;
+  background-color: #fafafa;
+  border: 1px dashed #d9d9d9;
+  transition: all 0.3s;
+}
+
+:deep(.el-upload--picture-card:hover) {
+  border-color: var(--el-color-primary);
+  background-color: #f5f5f5;
+}
+
+:deep(.el-upload-list--picture-card .el-upload-list__item) {
+  --el-upload-list-picture-card-size: 150px;
+}
+
+:deep(.el-icon.avatar-uploader-icon) {
+  font-size: 28px;
+  color: #8c939d;
+  width: 100%;
+  height: 100%;
+  text-align: center;
 }
 </style>
