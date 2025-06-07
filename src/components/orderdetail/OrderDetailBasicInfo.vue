@@ -184,11 +184,11 @@ const formatNodeTime = (dateTimeString) => {
 
 /* Node Status Specific Styles */
 .progress-node.node-status-completed .node-dot {
-  background-color: #6c757d; /* Completed but not active - greyish */
+  background-color: #69e57c85; /* Completed but not active - greyish */
 }
 .progress-node.node-status-completed .node-label .node-name,
 .progress-node.node-status-completed .node-label .node-time {
-  color: #6c757d;
+  color: #5cea71;
 }
 
 .progress-node.node-status-active .node-dot {
@@ -215,13 +215,13 @@ const formatNodeTime = (dateTimeString) => {
   left: calc(50% + 10px); /* Start after the dot of the current node */
   width: calc(100% - 20px); /* Extend to the next node, leaving space around dots */
   height: 2px;
-  background-color: #ccc; /* Default line color */
+  background-color: #cccccc; /* Default line color */
   z-index: 1;
 }
 
 /* Line color for completed segments leading to an active or completed node */
 .progress-node.node-status-completed:not(:last-child) .node-line {
-  background-color: #6c757d; /* Grey for completed segment lines */
+  background-color: #60eb7954; /* Grey for completed segment lines */
 }
 .progress-node.node-status-active
   ~ .progress-node.node-status-completed:not(:last-child)

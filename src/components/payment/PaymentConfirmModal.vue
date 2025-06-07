@@ -1,88 +1,91 @@
 <template>
-  <div class="payment-confirm-modal" v-if="visible">
-    <div class="modal-overlay" @click="handleCancel"></div>
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title">确认支付</h3>
-        <button class="close-button" @click="handleCancel">&times;</button>
-      </div>
-
-      <div class="modal-content">
-        <!-- 商品信息和价格信息行 -->
-        <div class="info-row">
-          <!-- 商品信息 -->
-          <div class="product-info">
-            <img
-              :src="orderData.product?.thumbnail || 'https://via.placeholder.com/80x80'"
-              :alt="orderData.product?.name"
-            />
-            <div class="product-details">
-              <h3>{{ orderData.product?.name || '商品' }}</h3>
-              <div class="specs">{{ orderData.product?.specs || '' }}</div>
-            </div>
-          </div>
-
-          <!-- 价格信息 -->
-          <div class="price-info">
-            <div class="price-row">
-              <span>商品原价</span>
-              <span>¥{{ orderData.payment?.originalAmount || '0.00' }}</span>
-            </div>
-            <div
-              v-for="(discount, index) in orderData.payment?.discounts"
-              :key="index"
-              class="price-row discount"
-            >
-              <span>{{ discount.label }}</span>
-              <span>-¥{{ discount.amount }}</span>
-            </div>
-            <div class="price-row final-price">
-              <span>实付金额</span>
-              <span class="amount">¥{{ orderData.payment?.actualAmount || '0.00' }}</span>
-            </div>
-          </div>
+  <el-dialog
+    :model-value="visible"
+    @update:model-value="emit('update:visible', $event)"
+    title="确认支付"
+    width="580px"
+    :close-on-click-modal="false"
+    :show-close="true"
+    class="payment-confirm-modal"
+    @close="handleClose"
+  >
+    <div class="payment-confirm-content">
+      <!-- 商品信息区域 -->
+      <div class="products-section">
+        <div class="products-header">
+          <span>商品信息</span>
+          <span v-if="products.length > 1" class="total-count">共{{ products.length }}件</span>
         </div>
-
-        <!-- 支付方式行 -->
-        <div class="payment-method">
-          <div class="method-info">
-            <span class="label">支付方式</span>
-            <span class="value">
-              {{ orderData.payment?.paymentMethod === 'wechat' ? '微信支付' : '支付宝支付' }}
-            </span>
-          </div>
-          <div class="method-icon">
-            <i
-              :class="[
-                'fab',
-                orderData.payment?.paymentMethod === 'wechat' ? 'fa-weixin' : 'fa-alipay',
-              ]"
-            ></i>
+        <div class="products-list" :class="{ 'single-product': products.length === 1 }">
+          <div v-for="product in products" :key="product.id" class="product-item">
+            <img :src="product.thumbnail" :alt="product.name" class="product-img" />
+            <div class="product-info">
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-specs">{{ product.specs }}</div>
+              <div class="product-price-qty">
+                <span class="price">¥{{ product.price }}</span>
+                <span class="quantity">x{{ product.quantity }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="cancel-button" @click="handleCancel" :disabled="isLoading">取消支付</button>
-        <button class="confirm-button" @click="handleConfirm" :disabled="isLoading">
-          <span v-if="!isLoading">确认支付</span>
-          <span v-else class="loading-wrapper">
-            <i class="loading-icon"></i>
-            支付处理中...
+      <!-- 支付信息区域 -->
+      <div class="payment-info-section">
+        <div class="payment-row">
+          <span>支付方式</span>
+          <span class="payment-method">
+            <i :class="paymentMethodIcon"></i>
+            {{ paymentMethodName }}
           </span>
-        </button>
+        </div>
+        <div class="payment-row">
+          <span>商品总额</span>
+          <span>¥{{ totalProductAmount }}</span>
+        </div>
+        <div class="payment-row" v-if="orderData.payment.discounts?.length">
+          <span>优惠金额</span>
+          <span class="discount-amount">-¥{{ totalDiscountAmount }}</span>
+        </div>
+        <div class="payment-row total">
+          <span>实付金额</span>
+          <span class="final-amount">¥{{ orderData.payment.actualAmount }}</span>
+        </div>
+      </div>
+
+      <!-- 倒计时和提示 -->
+      <div class="payment-tips">
+        <div class="countdown" v-if="orderData.payment.countdown">
+          <i class="el-icon-time"></i>
+          支付剩余时间：{{ formatCountdown(orderData.payment.countdown) }}
+        </div>
+        <div class="security-tip">
+          <i class="el-icon-lock"></i>
+          安全支付提示：请核对商品信息和实付金额，确认无误后点击确认支付
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- 底部按钮 -->
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="handleCancel">取消支付</el-button>
+        <el-button type="primary" @click="handleConfirm" :loading="confirmLoading">
+          确认支付 ¥{{ orderData.payment.actualAmount }}
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false,
+    required: true,
   },
   orderData: {
     type: Object,
@@ -90,258 +93,297 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['confirm', 'cancel'])
-const isLoading = ref(false)
+const emit = defineEmits(['update:visible', 'confirm', 'cancel'])
+const confirmLoading = ref(false)
 
-const handleConfirm = async () => {
-  isLoading.value = true
-  emit('confirm')
+// 计算商品列表
+const products = computed(() => {
+  return props.orderData.products || [props.orderData.product]
+})
+
+// 计算总商品金额
+const totalProductAmount = computed(() => {
+  return products.value
+    .reduce((sum, product) => {
+      return sum + product.price * product.quantity
+    }, 0)
+    .toFixed(2)
+})
+
+// 计算总优惠金额
+const totalDiscountAmount = computed(() => {
+  return (props.orderData.payment.discounts || [])
+    .reduce((sum, discount) => {
+      return sum + parseFloat(discount.amount)
+    }, 0)
+    .toFixed(2)
+})
+
+// 支付方式图标和名称
+const paymentMethodIcon = computed(() => {
+  const method = props.orderData.payment.paymentMethod
+  return method === 'wechat' ? 'fab fa-weixin' : 'fab fa-alipay'
+})
+
+const paymentMethodName = computed(() => {
+  return props.orderData.payment.paymentMethodName
+})
+
+// 格式化倒计时
+const formatCountdown = (seconds) => {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}分${remainingSeconds}秒`
 }
 
+// 处理关闭
+const handleClose = () => {
+  emit('update:visible', false)
+}
+
+// 处理取消
 const handleCancel = () => {
-  if (!isLoading.value) {
-    emit('cancel')
+  emit('cancel')
+  handleClose()
+}
+
+// 处理确认
+const handleConfirm = async () => {
+  confirmLoading.value = true
+  try {
+    await emit('confirm')
+  } finally {
+    confirmLoading.value = false
   }
 }
 </script>
 
 <style scoped>
 .payment-confirm-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  :deep(.el-dialog__body) {
+    padding: 0;
+  }
 }
 
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+.payment-confirm-content {
+  padding: 20px;
 }
 
-.modal-container {
-  position: relative;
-  width: 700px;
-  background: white;
+.products-section {
+  background: #f8f9fa;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-}
-
-.close-button {
-  border: none;
-  background: none;
-  font-size: 20px;
-  color: #999;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.modal-content {
   padding: 16px;
+  margin-bottom: 20px;
 }
 
-.info-row {
+.products-header {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.total-count {
+  color: #666;
+  font-size: 13px;
+}
+
+.products-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.products-list.single-product {
+  max-height: none;
+  overflow: visible;
+}
+
+.product-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.product-item:last-child {
+  margin-bottom: 0;
+}
+
+.product-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .product-info {
-  flex: 2;
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-}
-
-.product-info img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-right: 12px;
-}
-
-.product-details {
   flex: 1;
   min-width: 0;
 }
 
-.product-details h3 {
-  margin: 0 0 8px 0;
-  font-size: 15px;
+.product-name {
+  font-size: 14px;
   color: #333;
+  margin-bottom: 4px;
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
-.specs {
+.product-specs {
+  font-size: 12px;
   color: #666;
-  font-size: 13px;
+  margin-bottom: 4px;
 }
 
-.price-info {
-  flex: 1;
-  min-width: 200px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.price-row {
+.product-price-qty {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: center;
+}
+
+.price {
+  color: #ff5722;
+  font-weight: 500;
+}
+
+.quantity {
+  color: #666;
   font-size: 13px;
+}
+
+.payment-info-section {
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
   color: #666;
 }
 
-.price-row.discount {
+.payment-row:last-child {
+  margin-bottom: 0;
+}
+
+.payment-row.total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  font-weight: 500;
+  color: #333;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payment-method i {
+  font-size: 18px;
+}
+
+.payment-method i.fa-weixin {
+  color: #07c160;
+}
+
+.payment-method i.fa-alipay {
+  color: #1677ff;
+}
+
+.discount-amount {
   color: #ff5722;
 }
 
-.price-row.final-price {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
-  font-size: 14px;
-}
-
-.amount {
+.final-amount {
   color: #ff5722;
   font-size: 18px;
   font-weight: bold;
 }
 
-.payment-method {
-  padding: 12px 20px;
-  background: #fff7e6;
+.payment-tips {
+  padding: 16px;
+  background: #fff9f7;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
-.method-info {
+.countdown {
+  color: #ff5722;
+  margin-bottom: 8px;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
-.method-info .label {
+.security-tip {
   color: #666;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.method-info .value {
-  font-size: 15px;
-  color: #333;
-  font-weight: 500;
-}
-
-.method-icon i {
-  font-size: 24px;
-}
-
-.method-icon i.fa-weixin {
-  color: #07c160;
-}
-
-.method-icon i.fa-alipay {
-  color: #1677ff;
-}
-
-.modal-footer {
-  padding: 16px 24px;
+.dialog-footer {
+  padding: 16px 20px;
   border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
-.modal-footer button {
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
+/* 自定义滚动条样式 */
+.products-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.cancel-button {
+.products-list::-webkit-scrollbar-track {
   background: #f5f5f5;
-  color: #333;
-  border-color: #e0e0e0;
+  border-radius: 3px;
 }
 
-.cancel-button:hover {
-  background: #e8e8e8;
-  border-color: #d0d0d0;
+.products-list::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
 }
 
-.confirm-button {
-  background: #ff6f00;
-  color: white;
-  border-color: #ff6f00;
+.products-list::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
 }
 
-.confirm-button:hover {
-  background: #e65100;
-  border-color: #e65100;
+:deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.modal-footer button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+:deep(.el-button--primary) {
+  background-color: #ff5722;
+  border-color: #ff5722;
 }
 
-.loading-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+:deep(.el-button--primary:hover) {
+  background-color: #f4511e;
+  border-color: #f4511e;
 }
 
-.loading-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #fff;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+:deep(.el-button--primary:focus) {
+  background-color: #e64a19;
+  border-color: #e64a19;
 }
 </style>

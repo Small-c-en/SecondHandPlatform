@@ -10,8 +10,12 @@
       <!-- OrderDetailBasicInfo -->
       <OrderDetailBasicInfo :order="order" />
 
-      <!-- OrderDetailProductItem -->
-      <OrderDetailProductItem :product="order.product" />
+      <!-- 根据订单状态和商品数量选择展示组件 -->
+      <OrderDetailMultiProducts
+        v-if="order.status === '待付款' && order.products && order.products.length > 1"
+        :products="order.products"
+      />
+      <OrderDetailProductItem v-else :product="order.product" />
 
       <div class="main-details-grid">
         <div class="left-column">
@@ -64,6 +68,7 @@ import OrderDetailSellerCard from '@/components/orderdetail/OrderDetailSellerCar
 import OrderDetailLogistics from '@/components/orderdetail/OrderDetailLogistics.vue'
 import OrderDetailFixedActions from '@/components/orderdetail/OrderDetailFixedActions.vue'
 import OrderDetailTips from '@/components/orderdetail/OrderDetailTips.vue'
+import OrderDetailMultiProducts from '../components/orderdetail/OrderDetailMultiProducts.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -91,8 +96,42 @@ const mockOrders = {
       { name: '确认收货', status: 'pending' },
       { name: '订单完成', status: 'pending' },
     ],
+    products: [
+      {
+        id: 'prod1',
+        thumbnail:
+          'https://tse3-mm.cn.bing.net/th/id/OIP-C.mtifnjFVAbG7VTVWAVSSbAHaHa?w=210&h=196&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3',
+        name: '夏季新款透气运动鞋 轻便舒适 男女同款',
+        specs: '颜色: 天空蓝, 尺码: 42',
+        quantity: 1,
+        condition: '全新',
+        price: 199.0,
+        originalProductUrl: '/product/prod123',
+      },
+      {
+        id: 'prod2',
+        thumbnail: 'https://via.placeholder.com/100x100/C1FFD7/00BFA5?text=商品B',
+        name: '运动速干T恤 透气排汗',
+        specs: '颜色: 白色, 尺码: L',
+        quantity: 2,
+        condition: '全新',
+        price: 69.0,
+        originalProductUrl: '/product/prod124',
+      },
+      {
+        id: 'prod3',
+        thumbnail: 'https://via.placeholder.com/100x100/FFE0B2/FF9800?text=商品C',
+        name: '专业运动袜 防滑耐磨',
+        specs: '颜色: 黑色, 尺码: 均码',
+        quantity: 3,
+        condition: '全新',
+        price: 29.0,
+        originalProductUrl: '/product/prod125',
+      },
+    ],
     product: {
-      thumbnail: 'https://via.placeholder.com/100x100/FFDDC1/FF6F00?text=商品A',
+      thumbnail:
+        'https://tse3-mm.cn.bing.net/th/id/OIP-C.mtifnjFVAbG7VTVWAVSSbAHaHa?w=210&h=196&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3',
       name: '夏季新款透气运动鞋 轻便舒适 男女同款',
       specs: '颜色: 天空蓝, 尺码: 42',
       quantity: 1,
