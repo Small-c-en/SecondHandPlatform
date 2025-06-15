@@ -39,35 +39,96 @@
       @closed="handleDialogClose"
     >
       <div class="message-dialog-content">
-        <div class="message-info">
-          <el-icon class="message-icon" color="#ff5722"><Bell /></el-icon>
-          <span class="message-type">系统通知</span>
-          <span class="message-time">{{ currentMessage.time }}</span>
+        <div class="message-header">
+          <div class="message-meta">
+            <div class="message-type">
+              <el-icon class="message-icon" :class="currentMessage.priority"><Bell /></el-icon>
+              <span>系统通知</span>
+            </div>
+            <div class="message-tags">
+              <el-tag
+                v-if="currentMessage.priority"
+                :type="currentMessage.priority === 'high' ? 'danger' : 'warning'"
+                size="small"
+                effect="light"
+              >
+                {{ currentMessage.priority === 'high' ? '重要' : '普通' }}
+              </el-tag>
+              <el-tag v-if="currentMessage.category" size="small" effect="plain">
+                {{ currentMessage.category }}
+              </el-tag>
+            </div>
+          </div>
+          <div class="message-time">{{ currentMessage.time }}</div>
         </div>
+
         <div class="message-body">
-          <h4 class="message-title">{{ currentMessage.title }}</h4>
-          <div class="message-summary" v-html="currentMessage.summary"></div>
+          <div class="message-title">{{ currentMessage.title }}</div>
+          <div class="message-content" v-html="currentMessage.summary"></div>
+
+          <div
+            v-if="currentMessage.attachments && currentMessage.attachments.length"
+            class="message-attachments"
+          >
+            <div class="attachments-title">
+              <el-icon><Document /></el-icon>
+              <span>附件</span>
+            </div>
+            <div class="attachments-list">
+              <div
+                v-for="(attachment, index) in currentMessage.attachments"
+                :key="index"
+                class="attachment-item"
+                @click="downloadAttachment(attachment)"
+              >
+                <div class="attachment-icon">
+                  <el-icon><Document /></el-icon>
+                </div>
+                <div class="attachment-info">
+                  <div class="attachment-name">{{ attachment.name }}</div>
+                  <div class="attachment-size">{{ attachment.size }}</div>
+                </div>
+                <el-button type="primary" link>
+                  <el-icon><Download /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-if="currentMessage.actions && currentMessage.actions.length"
+            class="message-actions"
+          >
+            <el-button
+              v-for="action in currentMessage.actions"
+              :key="action.type"
+              :type="action.type"
+              :icon="action.icon"
+              @click="handleAction(action)"
+            >
+              {{ action.text }}
+            </el-button>
+          </div>
         </div>
+
         <div class="message-footer">
-          <span class="message-tip">
+          <div class="message-tip">
             <el-icon><InfoFilled /></el-icon>
-            消息将在确认后标记为已读
-          </span>
+            <span>消息将在确认后标记为已读</span>
+          </div>
+          <div class="message-actions">
+            <el-button @click="showMessageDialog = false">关闭</el-button>
+            <el-button
+              type="primary"
+              @click="handleConfirmRead"
+              :disabled="currentMessage.read"
+              :icon="currentMessage.read ? 'Select' : 'Check'"
+            >
+              {{ currentMessage.read ? '已读' : '标记已读' }}
+            </el-button>
+          </div>
         </div>
       </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="showMessageDialog = false">关闭</el-button>
-          <el-button
-            type="primary"
-            @click="handleConfirmRead"
-            :disabled="currentMessage.read"
-            :icon="currentMessage.read ? 'Select' : 'Check'"
-          >
-            {{ currentMessage.read ? '已读' : '标记已读' }}
-          </el-button>
-        </div>
-      </template>
     </el-dialog>
   </div>
 </template>
@@ -75,7 +136,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Bell, InfoFilled } from '@element-plus/icons-vue'
+import { Bell, InfoFilled, Document, Download } from '@element-plus/icons-vue'
 import MessageTopNav from '@/components/shared/MessageTopNav.vue'
 import MessageTabBar from '@/components/shared/MessageTabBar.vue'
 import SystemNotifications from '@/components/message/SystemNotifications.vue'
@@ -209,6 +270,16 @@ const viewDetail = (id) => {
 const enterChat = (id) => {
   router.push('/chat/' + id)
 }
+
+// 下载附件
+const downloadAttachment = (attachment) => {
+  // 实现下载附件的逻辑
+}
+
+// 处理动作
+const handleAction = (action) => {
+  // 实现处理动作的逻辑
+}
 </script>
 
 <style scoped>
@@ -236,50 +307,66 @@ const enterChat = (id) => {
 
 /* 消息弹窗样式 */
 .message-dialog {
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 .message-dialog :deep(.el-dialog__header) {
-  margin-right: 0;
-  padding: 20px 24px;
-  border-bottom: 1px solid #f0f0f0;
-  background-color: #f8f8f8;
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
 }
 
 .message-dialog :deep(.el-dialog__title) {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  display: none;
+}
+
+.message-dialog :deep(.el-dialog__body) {
+  padding: 0;
 }
 
 .message-dialog-content {
   color: #333;
 }
 
-.message-info {
+.message-header {
+  padding: 24px;
+  background: linear-gradient(135deg, #fff8f0 0%, #fff5f0 100%);
+  border-bottom: 1px solid #ffe4d6;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.message-type {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
-  background: #fff5f0;
-  border-bottom: 1px solid #ffe4d6;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
 }
 
 .message-icon {
   font-size: 24px;
-  color: #ff5722;
+  color: #ff6f00;
 }
 
-.message-type {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+.message-icon.high {
+  color: #f56c6c;
+}
+
+.message-tags {
+  display: flex;
+  gap: 8px;
 }
 
 .message-time {
-  font-size: 14px;
+  font-size: 13px;
   color: #999;
-  margin-left: auto;
 }
 
 .message-body {
@@ -288,49 +375,147 @@ const enterChat = (id) => {
 }
 
 .message-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
-  margin: 0 0 16px;
+  margin-bottom: 16px;
 }
 
-.message-summary {
+.message-content {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.8;
   color: #666;
   white-space: pre-wrap;
+  margin-bottom: 24px;
+}
+
+.message-attachments {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.attachments-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.attachment-item:hover {
+  background: #f0f0f0;
+}
+
+.attachment-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+  border-radius: 6px;
+  color: #666;
+}
+
+.attachment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-size {
+  font-size: 12px;
+  color: #999;
+}
+
+.message-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .message-footer {
   padding: 16px 24px;
   background: #f8f8f8;
   border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .message-tip {
-  font-size: 13px;
-  color: #999;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.dialog-footer {
-  padding: 16px 24px;
-  text-align: right;
-  border-top: 1px solid #f0f0f0;
-  background: #fff;
-}
-
-.dialog-footer .el-button {
-  margin-left: 12px;
-  min-width: 90px;
+  font-size: 13px;
+  color: #999;
 }
 
 .message-dialog :deep(.el-dialog) {
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+@media screen and (max-width: 768px) {
+  .message-dialog {
+    width: 90% !important;
+  }
+
+  .message-header {
+    padding: 16px;
+  }
+
+  .message-body {
+    padding: 16px;
+  }
+
+  .message-title {
+    font-size: 18px;
+  }
+
+  .message-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .message-actions {
+    width: 100%;
+  }
+
+  .message-actions .el-button {
+    flex: 1;
+  }
 }
 
 /* 响应式设计 */

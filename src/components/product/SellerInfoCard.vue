@@ -1,137 +1,175 @@
 <template>
-  <div class="seller-info-card">
-    <div class="seller-basic-info">
-      <img
-        :src="seller.avatarUrl || 'https://via.placeholder.com/60?text=头像'"
-        alt="卖家头像"
-        class="seller-avatar"
-      />
-      <div class="seller-name-id">
-        <span class="seller-nickname">{{ seller.nickname || '卖家昵称' }}</span>
-        <span v-if="seller.isVerified" class="verified-badge">实名认证</span>
+  <div class="seller-info-card" @click="navigateToSeller">
+    <div class="seller-header">
+      <div class="seller-avatar">
+        <el-avatar :size="60" :src="seller.avatar" />
+      </div>
+      <div class="seller-info">
+        <div class="seller-name">{{ seller.name }}</div>
+        <div class="seller-rating">
+          <el-rate
+            v-model="seller.rating"
+            disabled
+            show-score
+            text-color="#ff9900"
+            score-template="{value}"
+          />
+        </div>
+      </div>
+      <div class="seller-actions">
+        <el-button type="primary" size="small" class="orange-button" @click.stop="handleFollow">
+          <el-icon><Plus /></el-icon>
+          关注
+        </el-button>
+        <el-button size="small" class="orange-outline-button" @click.stop="handleMessage">
+          <el-icon><ChatDotRound /></el-icon>
+          发消息
+        </el-button>
       </div>
     </div>
-    <div class="seller-credit-section">
-      <div class="credit-score">
-        <span class="score-label">信用评分：</span>
-        <!-- 占位：星级评分 -->
-        <span class="stars">★★★★☆</span>
-        <span class="rating-count">({{ seller.ratingCount || 0 }}人评分)</span>
+
+    <div class="seller-stats">
+      <div class="stat-item">
+        <div class="stat-value">{{ seller.totalSales || 0 }}</div>
+        <div class="stat-label">总销量</div>
       </div>
-      <button class="contact-seller-button">联系卖家</button>
+      <div class="stat-item">
+        <div class="stat-value">{{ seller.productCount || 0 }}</div>
+        <div class="stat-label">在售商品</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ seller.reviewCount || 0 }}</div>
+        <div class="stat-label">评价数</div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps, ref } from 'vue'
+import { Plus, ChatDotRound } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 
-// 模拟卖家数据
-const seller = ref({
-  avatarUrl: '', // 留空则使用占位图
-  nickname: '诚信卖家小明',
-  isVerified: true,
-  ratingCount: 125,
-  // 实际星级评分逻辑会更复杂
+const router = useRouter()
+const props = defineProps({
+  seller: {
+    type: Object,
+    required: true,
+  },
 })
 
-// 如果需要从父组件传入卖家数据，可以取消以下注释
-// defineProps({
-//   seller: {
-//     type: Object,
-//     required: true,
-//     default: () => ({})
-//   }
-// });
+const navigateToSeller = () => {
+  router.push(`/seller/${props.seller.id}`)
+}
+
+const handleFollow = () => {
+  // TODO: 实现关注功能
+  console.log('关注卖家:', props.seller.id)
+}
+
+const handleMessage = () => {
+  // TODO: 实现发送消息功能
+  router.push(`/chat/${props.seller.id}`)
+}
 </script>
 
 <style scoped>
 .seller-info-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 20px;
-  background-color: #f8f9fa; /* 浅灰背景 */
+  background-color: #fff;
   border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #eee;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.seller-basic-info {
+.seller-info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.seller-header {
   display: flex;
   align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.seller-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-right: 15px;
-  object-fit: cover;
-  border: 2px solid #ddd;
+.seller-info {
+  flex: 1;
 }
 
-.seller-name-id {
-  display: flex;
-  flex-direction: column;
-}
-
-.seller-nickname {
+.seller-name {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   color: #333;
   margin-bottom: 4px;
 }
 
-.verified-badge {
-  font-size: 12px;
-  color: #ff6f00; /* 橙色 */
-  background-color: #fff0e0;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #ffcc80;
-  align-self: flex-start;
-}
-
-.seller-credit-section {
+.seller-rating {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.credit-score {
-  text-align: right;
-  margin-right: 20px;
-  color: #555;
+.seller-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.score-label {
-  font-size: 14px;
+.seller-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
 }
 
-.stars {
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
   font-size: 18px;
-  color: #ffb300; /* 星星颜色 */
-  margin: 0 5px;
+  font-weight: 600;
+  color: #ff6f00;
+  margin-bottom: 4px;
 }
 
-.rating-count {
-  font-size: 13px;
-  color: #777;
+.stat-label {
+  font-size: 12px;
+  color: #666;
 }
 
-.contact-seller-button {
-  background-color: #6c757d; /* 灰色背景 */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+@media screen and (max-width: 768px) {
+  .seller-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .seller-actions {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-.contact-seller-button:hover {
-  background-color: #5a6268;
+.orange-button {
+  background-color: #ff6f00 !important;
+  border-color: #ff6f00 !important;
+}
+
+.orange-button:hover {
+  background-color: #f26100 !important;
+  border-color: #f26100 !important;
+}
+
+.orange-outline-button {
+  color: #ff6f00 !important;
+  border-color: #ff6f00 !important;
+}
+
+.orange-outline-button:hover {
+  color: #fff !important;
+  background-color: #ff6f00 !important;
+  border-color: #ff6f00 !important;
 }
 </style>

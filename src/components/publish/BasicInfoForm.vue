@@ -9,6 +9,10 @@
     >
       <!-- 商品标题 -->
       <el-form-item label="商品标题" prop="title">
+        <div class="input-tips">
+          <i class="el-icon-info"></i>
+          标题是商品的第一印象，好的标题能提高成交率
+        </div>
         <el-input
           v-model="localInfo.title"
           placeholder="请输入商品标题（2-50字）"
@@ -20,6 +24,10 @@
 
       <!-- 商品分类 -->
       <el-form-item label="商品分类" prop="category">
+        <div class="input-tips">
+          <i class="el-icon-info"></i>
+          选择合适的分类，让买家更容易找到您的商品
+        </div>
         <el-cascader
           v-model="localInfo.category"
           :options="categoryOptions"
@@ -30,86 +38,102 @@
       </el-form-item>
 
       <!-- 价格信息 -->
-      <div class="price-group">
-        <el-form-item label="售价" prop="price" class="price-item">
-          <el-input-number
-            v-model="localInfo.price"
-            :min="0"
-            :precision="2"
-            :step="10"
-            controls-position="right"
-            placeholder="请输入售价"
-            class="price-input"
-            @change="handleInput"
-          />
+      <div class="price-section">
+        <div class="section-title">价格信息</div>
+        <div class="price-group">
+          <el-form-item label="售价" prop="price" class="price-item">
+            <el-input-number
+              v-model="localInfo.price"
+              :min="0"
+              :precision="2"
+              :step="10"
+              controls-position="right"
+              placeholder="请输入售价"
+              class="price-input"
+              @change="handleInput"
+            />
+          </el-form-item>
+          <el-form-item label="原价" prop="originalPrice" class="price-item">
+            <el-input-number
+              v-model="localInfo.originalPrice"
+              :min="0"
+              :precision="2"
+              :step="10"
+              controls-position="right"
+              placeholder="请输入原价"
+              class="price-input"
+              @change="handleInput"
+            />
+          </el-form-item>
+        </div>
+      </div>
+
+      <!-- 商品成色 -->
+      <div class="condition-section">
+        <div class="section-title">商品成色</div>
+        <el-form-item prop="condition">
+          <div class="condition-tips">
+            <i class="el-icon-info"></i>
+            请如实描述商品成色，避免后续交易纠纷
+          </div>
+          <el-radio-group v-model="localInfo.condition" @change="handleInput">
+            <el-radio label="95">95成新</el-radio>
+            <el-radio label="9">9成新</el-radio>
+            <el-radio label="8">8成新</el-radio>
+            <el-radio label="7">7成新及以下</el-radio>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="原价" prop="originalPrice" class="price-item">
-          <el-input-number
-            v-model="localInfo.originalPrice"
-            :min="0"
-            :precision="2"
-            :step="10"
-            controls-position="right"
-            placeholder="请输入原价"
-            class="price-input"
+      </div>
+
+      <!-- 自定义标签 -->
+      <div class="tags-section">
+        <div class="section-title">商品标签</div>
+        <el-form-item prop="customTags">
+          <div class="input-tips">
+            <i class="el-icon-info"></i>
+            添加标签可以让买家更快找到您的商品
+          </div>
+          <el-select
+            v-model="localInfo.customTags"
+            multiple
+            filterable
+            allow-create
+            :max="2"
+            placeholder="最多可添加2个标签"
+            @change="handleInput"
+          >
+            <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
+          </el-select>
+        </el-form-item>
+      </div>
+
+      <!-- 商品所在地 -->
+      <div class="location-section">
+        <div class="section-title">商品所在地</div>
+        <el-form-item prop="location">
+          <div class="input-tips">
+            <i class="el-icon-info"></i>
+            准确的位置信息有助于买家评估物流时间
+          </div>
+          <el-cascader
+            v-model="localInfo.location"
+            :options="provinceList"
+            :props="{
+              expandTrigger: 'hover',
+              value: 'value',
+              label: 'label',
+              children: 'children',
+              checkStrictly: false,
+              emitPath: true,
+            }"
+            placeholder="请选择商品所在地"
+            :show-all-levels="true"
+            filterable
+            clearable
             @change="handleInput"
           />
         </el-form-item>
       </div>
-
-      <!-- 商品成色 -->
-      <el-form-item label="商品成色" prop="condition">
-        <el-radio-group v-model="localInfo.condition" @change="handleInput">
-          <el-radio label="95">95成新</el-radio>
-          <el-radio label="9">9成新</el-radio>
-          <el-radio label="8">8成新</el-radio>
-          <el-radio label="7">7成新及以下</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <!-- 发布状态 -->
-      <el-form-item label="发布状态" prop="publishStatus">
-        <el-radio-group v-model="localInfo.publishStatus" @change="handleInput">
-          <el-radio :label="2">立即发布</el-radio>
-          <el-radio :label="1">保存草稿</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <!-- 自定义标签 -->
-      <el-form-item label="自定义标签（最多2个）" prop="customTags">
-        <el-select
-          v-model="localInfo.customTags"
-          multiple
-          filterable
-          allow-create
-          :max="2"
-          placeholder="最多可添加2个标签"
-          @change="handleInput"
-        >
-          <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
-        </el-select>
-      </el-form-item>
-
-      <!-- 商品所在地 -->
-      <el-form-item label="商品所在地" prop="location">
-        <el-cascader
-          v-model="localInfo.location"
-          :options="provinceList"
-          :props="{
-            expandTrigger: 'hover',
-            value: 'value',
-            label: 'label',
-            children: 'children',
-            checkStrictly: false,
-            emitPath: true,
-          }"
-          placeholder="请选择商品所在地"
-          :show-all-levels="true"
-          filterable
-          clearable
-          @change="handleInput"
-        />
-      </el-form-item>
     </el-form>
   </div>
 </template>
@@ -136,9 +160,9 @@ const localInfo = reactive({
   price: null,
   originalPrice: null,
   condition: '',
-  publishStatus: 2,
   customTags: [],
   location: [],
+  ...props.basicInfo,
 })
 
 // 处理地区数据
@@ -176,11 +200,6 @@ const initProvinceData = () => {
 
     province.children = cities
   })
-}
-
-// 监听地区选择变化
-const handleAreaChange = (value) => {
-  handleInput()
 }
 
 // 获取地区标签
@@ -225,7 +244,6 @@ const handleInput = () => {
     price: localInfo.price,
     originalPrice: localInfo.originalPrice,
     condition: localInfo.condition,
-    publishStatus: localInfo.publishStatus,
     customTags: localInfo.customTags,
     location: localInfo.location,
     locationLabels: getLocationLabels(localInfo.location),
@@ -294,7 +312,6 @@ const rules = {
   price: [{ required: true, message: '请输入售价', trigger: 'blur' }],
   condition: [{ required: true, message: '请选择商品成色', trigger: 'change' }],
   location: [{ required: true, message: '请选择商品所在地', trigger: 'change' }],
-  publishStatus: [{ required: true, message: '请选择发布状态', trigger: 'change' }],
 }
 
 // 表单验证方法
@@ -326,62 +343,108 @@ defineExpose({
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-.publish-form {
-  max-width: 800px;
-  margin: 0 auto;
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.input-tips {
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-tips i {
+  color: #909399;
+}
+
+.price-section,
+.condition-section,
+.tags-section,
+.location-section {
+  margin-top: 32px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
 }
 
 .price-group {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
 }
 
-.price-item {
-  flex: 0 0 auto;
-  width: 200px;
+:deep(.el-input__wrapper),
+:deep(.el-textarea__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+}
+
+:deep(.el-input__wrapper:hover),
+:deep(.el-textarea__wrapper:hover) {
+  box-shadow: 0 0 0 1px #c0c4cc inset;
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #ff6f00 inset !important;
+}
+
+:deep(.el-form-item.is-required .el-form-item__label:before) {
+  color: #ff6f00;
+}
+
+:deep(.el-radio-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+:deep(.el-radio) {
+  margin-right: 0;
+}
+
+:deep(.el-cascader),
+:deep(.el-select) {
+  width: 100%;
 }
 
 .price-input {
   width: 100%;
 }
 
-.custom-tag {
-  margin-right: 8px;
-  margin-bottom: 8px;
+:deep(.el-input-number.is-controls-right .el-input__wrapper) {
+  padding-right: 35px;
 }
 
-.tag-input {
-  width: 100px;
-  margin-right: 8px;
-  vertical-align: bottom;
+:deep(.el-select .el-select__tags) {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.button-new-tag {
-  margin-bottom: 8px;
+:deep(.el-select .el-select__tags::-webkit-scrollbar) {
+  display: none;
 }
 
-:deep(.el-form-item__label) {
-  font-weight: 500;
-  color: #333;
+:deep(.el-tag) {
+  margin-right: 6px;
+  border-radius: 4px;
 }
 
-:deep(.el-input__wrapper),
-:deep(.el-select),
-:deep(.el-cascader) {
-  width: 100%;
+:deep(.el-tag .el-tag__close) {
+  color: #666;
 }
 
-:deep(.el-input-number) {
-  width: 100%;
-}
-
-:deep(.el-radio-group) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-:deep(.el-form-item__content) {
-  flex-wrap: wrap;
+:deep(.el-tag .el-tag__close:hover) {
+  color: #fff;
+  background-color: #ff6f00;
 }
 </style>

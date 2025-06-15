@@ -78,6 +78,51 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
+    {
+      path: '/seller/:id',
+      name: 'SellerDetail',
+      component: () => import('@/views/SellerDetailView.vue'),
+      meta: {
+        title: '卖家详情',
+        requiresAuth: false,
+      },
+    },
+    {
+      path: '/shipping/:id',
+      name: 'Shipping',
+      component: () => import('@/views/ShippingView.vue'),
+      meta: {
+        title: '订单发货',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/chat/:id',
+      name: 'Chat',
+      component: () => import('@/views/ChatView.vue'),
+      meta: {
+        title: '聊天',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/review/:id',
+      name: 'Review',
+      component: () => import('@/views/ReviewView.vue'),
+      meta: {
+        title: '商品评价',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/refund/:id',
+      name: 'Refund',
+      component: () => import('@/views/RefundView.vue'),
+      meta: {
+        title: '退款处理',
+        requiresAuth: true,
+      },
+    },
   ],
 })
 
