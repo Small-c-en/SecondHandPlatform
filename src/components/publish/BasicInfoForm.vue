@@ -5,134 +5,219 @@
       :model="localInfo"
       :rules="rules"
       label-position="top"
-      class="publish-form"
+      class="two-column-form"
     >
-      <!-- 商品标题 -->
-      <el-form-item label="商品标题" prop="title">
-        <div class="input-tips">
-          <i class="el-icon-info"></i>
-          标题是商品的第一印象，好的标题能提高成交率
-        </div>
-        <el-input
-          v-model="localInfo.title"
-          placeholder="请输入商品标题（2-50字）"
-          maxlength="50"
-          show-word-limit
-          @input="handleInput"
-        />
-      </el-form-item>
-
-      <!-- 商品分类 -->
-      <el-form-item label="商品分类" prop="category">
-        <div class="input-tips">
-          <i class="el-icon-info"></i>
-          选择合适的分类，让买家更容易找到您的商品
-        </div>
-        <el-cascader
-          v-model="localInfo.category"
-          :options="categoryOptions"
-          :props="{ expandTrigger: 'hover' }"
-          placeholder="请选择商品分类"
-          @change="handleInput"
-        />
-      </el-form-item>
-
-      <!-- 价格信息 -->
-      <div class="price-section">
-        <div class="section-title">价格信息</div>
-        <div class="price-group">
-          <el-form-item label="售价" prop="price" class="price-item">
-            <el-input-number
-              v-model="localInfo.price"
-              :min="0"
-              :precision="2"
-              :step="10"
-              controls-position="right"
-              placeholder="请输入售价"
-              class="price-input"
-              @change="handleInput"
-            />
-          </el-form-item>
-          <el-form-item label="原价" prop="originalPrice" class="price-item">
-            <el-input-number
-              v-model="localInfo.originalPrice"
-              :min="0"
-              :precision="2"
-              :step="10"
-              controls-position="right"
-              placeholder="请输入原价"
-              class="price-input"
-              @change="handleInput"
+      <!-- 左侧列 -->
+      <div class="form-column">
+        <!-- 商品标题 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="商品标题" prop="title">
+            <div class="input-tips">
+              <i class="el-icon-info"></i>
+              标题是商品的第一印象，好的标题能提高成交率
+            </div>
+            <el-input
+              v-model="localInfo.title"
+              placeholder="请输入商品标题（2-50字）"
+              maxlength="50"
+              show-word-limit
+              @input="handleInput"
             />
           </el-form-item>
         </div>
+
+        <!-- 价格信息 - 两列并排 -->
+        <div class="form-section">
+          <div class="price-row">
+            <el-form-item label="商品价格" prop="price" class="price-item">
+              <div class="price-input-wrapper">
+                <span class="price-prefix">¥</span>
+                <el-input-number
+                  v-model="localInfo.price"
+                  :min="0"
+                  :precision="2"
+                  :step="0.01"
+                  placeholder="请输入商品价格"
+                  class="price-input"
+                  controls-position="right"
+                  :controls="false"
+                  @change="handleInput"
+                />
+              </div>
+              <!-- <div class="price-controls">
+                <el-button
+                  type="primary"
+                  link
+                  class="price-control-btn"
+                  @click="adjustPrice('decrease')"
+                >
+                  <el-icon><Minus /></el-icon>
+                </el-button>
+                <el-button
+                  type="primary"
+                  link
+                  class="price-control-btn"
+                  @click="adjustPrice('increase')"
+                >
+                  <el-icon><Plus /></el-icon>
+                </el-button>
+              </div> -->
+            </el-form-item>
+
+            <el-form-item label="原价" prop="originalPrice" class="price-item">
+              <div class="price-input-wrapper">
+                <span class="price-prefix">¥</span>
+                <el-input-number
+                  v-model="localInfo.originalPrice"
+                  :min="0"
+                  :precision="2"
+                  :step="0.01"
+                  placeholder="请输入原价"
+                  class="price-input"
+                  controls-position="right"
+                  :controls="false"
+                  @change="handleInput"
+                />
+              </div>
+              <!-- <div class="price-controls">
+                <el-button
+                  type="primary"
+                  link
+                  class="price-control-btn"
+                  @click="adjustOriginalPrice('decrease')"
+                >
+                  <el-icon><Minus /></el-icon>
+                </el-button>
+                <el-button
+                  type="primary"
+                  link
+                  class="price-control-btn"
+                  @click="adjustOriginalPrice('increase')"
+                >
+                  <el-icon><Plus /></el-icon>
+                </el-button>
+              </div> -->
+            </el-form-item>
+          </div>
+        </div>
+
+        <!-- 商品分类 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="商品分类" prop="category">
+            <div class="input-tips">
+              <i class="el-icon-info"></i>
+              选择合适的分类，让买家更容易找到您的商品
+            </div>
+            <el-cascader
+              v-model="localInfo.category"
+              :options="categoryOptions"
+              :props="{ expandTrigger: 'hover' }"
+              placeholder="请选择商品分类"
+              clearable
+              @change="handleInput"
+            />
+          </el-form-item>
+        </div>
+
+        <!-- 商品所在地 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="商品所在地" prop="location">
+            <div class="location-section">
+              <div class="section-title">商品所在地</div>
+              <div class="input-tips">
+                <i class="el-icon-info"></i>
+                准确的位置信息有助于买家评估物流时间
+              </div>
+              <el-cascader
+                v-model="localInfo.location"
+                :options="provinceList"
+                :props="{
+                  expandTrigger: 'hover',
+                  value: 'value',
+                  label: 'label',
+                  children: 'children',
+                  checkStrictly: false,
+                  emitPath: true,
+                }"
+                placeholder="请选择商品所在地"
+                :show-all-levels="true"
+                filterable
+                clearable
+                class="location-cascader"
+                @change="handleInput"
+              />
+            </div>
+          </el-form-item>
+        </div>
       </div>
 
-      <!-- 商品成色 -->
-      <div class="condition-section">
-        <div class="section-title">商品成色</div>
-        <el-form-item prop="condition">
-          <div class="condition-tips">
-            <i class="el-icon-info"></i>
-            请如实描述商品成色，避免后续交易纠纷
-          </div>
-          <el-radio-group v-model="localInfo.condition" @change="handleInput">
-            <el-radio label="95">95成新</el-radio>
-            <el-radio label="9">9成新</el-radio>
-            <el-radio label="8">8成新</el-radio>
-            <el-radio label="7">7成新及以下</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </div>
+      <!-- 右侧列 -->
+      <div class="form-column">
+        <!-- 商品成色 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="商品成色" prop="condition">
+            <div class="condition-section">
+              <div class="section-title">商品成色</div>
+              <div class="condition-tips">
+                <i class="el-icon-info"></i>
+                请如实描述商品成色，避免后续交易纠纷
+              </div>
+              <el-select
+                v-model="localInfo.condition"
+                placeholder="请选择商品成色"
+                class="condition-select"
+                @change="handleInput"
+              >
+                <el-option label="全新" value="全新" />
+                <el-option label="9成新" value="9成新" />
+                <el-option label="8成新" value="8成新" />
+                <el-option label="7成新" value="7成新" />
+                <el-option label="6成新" value="6成新" />
+                <el-option label="5成新及以下" value="5成新及以下" />
+              </el-select>
+            </div>
+          </el-form-item>
+        </div>
 
-      <!-- 自定义标签 -->
-      <div class="tags-section">
-        <div class="section-title">商品标签</div>
-        <el-form-item prop="customTags">
-          <div class="input-tips">
-            <i class="el-icon-info"></i>
-            添加标签可以让买家更快找到您的商品
-          </div>
-          <el-select
-            v-model="localInfo.customTags"
-            multiple
-            filterable
-            allow-create
-            :max="2"
-            placeholder="最多可添加2个标签"
-            @change="handleInput"
-          >
-            <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
-          </el-select>
-        </el-form-item>
-      </div>
+        <!-- 发布状态 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="发布状态" prop="publishStatus">
+            <el-radio-group
+              v-model="localInfo.publishStatus"
+              class="full-width"
+              @change="handleInput"
+            >
+              <el-radio :label="1">保存为草稿</el-radio>
+              <el-radio :label="2">立即发布</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </div>
 
-      <!-- 商品所在地 -->
-      <div class="location-section">
-        <div class="section-title">商品所在地</div>
-        <el-form-item prop="location">
-          <div class="input-tips">
-            <i class="el-icon-info"></i>
-            准确的位置信息有助于买家评估物流时间
-          </div>
-          <el-cascader
-            v-model="localInfo.location"
-            :options="provinceList"
-            :props="{
-              expandTrigger: 'hover',
-              value: 'value',
-              label: 'label',
-              children: 'children',
-              checkStrictly: false,
-              emitPath: true,
-            }"
-            placeholder="请选择商品所在地"
-            :show-all-levels="true"
-            filterable
-            clearable
-            @change="handleInput"
-          />
-        </el-form-item>
+        <!-- 自定义标签 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="自定义标签" prop="customTags">
+            <div class="tags-section">
+              <div class="section-title">商品标签</div>
+              <div class="input-tips">
+                <i class="el-icon-info"></i>
+                添加标签可以让买家更快找到您的商品
+              </div>
+              <el-select
+                v-model="localInfo.customTags"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                :max="3"
+                placeholder="最多可添加3个标签"
+                class="tag-select"
+                @change="handleInput"
+              >
+                <el-option v-for="tag in commonTags" :key="tag" :label="tag" :value="tag" />
+              </el-select>
+            </div>
+          </el-form-item>
+        </div>
       </div>
     </el-form>
   </div>
@@ -153,17 +238,7 @@ const emit = defineEmits(['update:basic-info'])
 
 const formRef = ref(null)
 
-// 本地状态
-const localInfo = reactive({
-  title: '',
-  category: [],
-  price: null,
-  originalPrice: null,
-  condition: '',
-  customTags: [],
-  location: [],
-  ...props.basicInfo,
-})
+const localInfo = reactive({ ...props.basicInfo })
 
 // 处理地区数据
 const provinceList = ref([])
@@ -228,26 +303,14 @@ const getLocationLabels = (codes) => {
 watch(
   () => props.basicInfo,
   (newVal) => {
-    if (newVal && Object.keys(newVal).length > 0) {
-      Object.assign(localInfo, newVal)
-    }
+    Object.assign(localInfo, newVal)
   },
-  { deep: true, immediate: true },
+  { deep: true },
 )
 
 // 处理输入更新
 const handleInput = () => {
-  emit('update:basic-info', {
-    title: localInfo.title,
-    category: localInfo.category,
-    categoryLabels: getCategoryLabels(localInfo.category),
-    price: localInfo.price,
-    originalPrice: localInfo.originalPrice,
-    condition: localInfo.condition,
-    customTags: localInfo.customTags,
-    location: localInfo.location,
-    locationLabels: getLocationLabels(localInfo.location),
-  })
+  emit('update:basic-info', { ...localInfo })
 }
 
 // 获取分类标签
@@ -327,8 +390,65 @@ const validateAll = async () => {
 
 // 组件挂载时初始化省份数据
 onMounted(() => {
-  initProvinceData()
+  // 初始化省份列表
+  provinceList.value = Object.entries(chinaAreaList.province_list).map(([code, name]) => ({
+    value: code,
+    label: name,
+    children: [], // 添加children属性以支持级联
+  }))
+
+  // 为每个省份预加载城市数据
+  provinceList.value.forEach((province) => {
+    const cities = Object.entries(chinaAreaList.city_list)
+      .filter(([code]) => code.startsWith(province.value.slice(0, 2)))
+      .map(([code, name]) => ({
+        value: code,
+        label: name,
+        children: [], // 为城市预留区县数据位置
+      }))
+
+    // 为每个城市预加载区县数据
+    cities.forEach((city) => {
+      const districts = Object.entries(chinaAreaList.county_list)
+        .filter(([code]) => code.startsWith(city.value.slice(0, 4)))
+        .map(([code, name]) => ({
+          value: code,
+          label: name,
+        }))
+      city.children = districts
+    })
+
+    province.children = cities
+  })
 })
+
+// 调整价格
+const adjustPrice = (type) => {
+  if (!localInfo.price) {
+    localInfo.price = 0
+  }
+  const step = 0.01
+  if (type === 'increase') {
+    localInfo.price = Number((localInfo.price + step).toFixed(2))
+  } else {
+    localInfo.price = Math.max(0, Number((localInfo.price - step).toFixed(2)))
+  }
+  handleInput()
+}
+
+// 调整原价
+const adjustOriginalPrice = (type) => {
+  if (!localInfo.originalPrice) {
+    localInfo.originalPrice = 0
+  }
+  const step = 0.01
+  if (type === 'increase') {
+    localInfo.originalPrice = Number((localInfo.originalPrice + step).toFixed(2))
+  } else {
+    localInfo.originalPrice = Math.max(0, Number((localInfo.originalPrice - step).toFixed(2)))
+  }
+  handleInput()
+}
 
 defineExpose({
   validateAll,
@@ -337,114 +457,295 @@ defineExpose({
 
 <style scoped>
 .basic-info-form {
-  background: #fff;
-  border-radius: 8px;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.two-column-form {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.form-section {
+  /* background-color: #fafafa; */
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  border: 1px solid #dddfe570;
 }
 
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
+.form-section:hover {
+  background-color: rgba(255, 111, 0, 0.041);
+  border-color: #ff6f00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.1);
 }
 
-.input-tips {
-  margin-bottom: 8px;
-  color: #666;
-  font-size: 13px;
+.price-row {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+
+.price-item {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.price-input-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.input-tips i {
-  color: #909399;
-}
-
-.price-section,
-.condition-section,
-.tags-section,
-.location-section {
-  margin-top: 32px;
-  background: #f8f9fa;
+  background-color: #fff;
   border-radius: 8px;
-  padding: 20px;
+  border: 1px solid #dcdfe6;
+  transition: all 0.3s ease;
 }
 
-.price-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+.price-input-wrapper:hover {
+  border-color: #ff6f00;
+}
+
+.price-input-wrapper:focus-within {
+  border-color: #ff6f00;
+  /* box-shadow: #ff6f00; */
+}
+
+.price-prefix {
+  padding: 0 12px;
+  color: #606266;
+  font-size: 16px;
+  font-weight: 500;
+  border-right: 1px solid #dcdfe6;
+  transition: all 0.3s ease;
+}
+
+.price-input-wrapper:hover .price-prefix,
+.price-input-wrapper:focus-within .price-prefix {
+  color: #ff6f00;
+  border-right-color: #ff6f00;
+}
+
+.price-input {
+  flex: 1;
+}
+
+:deep(.price-input .el-input__wrapper) {
+  box-shadow: none !important;
+  padding: 0 12px;
+}
+
+:deep(.price-input .el-input__inner) {
+  text-align: left;
+  height: 40px;
+  line-height: 40px;
+}
+
+:deep(.price-input .el-input__wrapper.is-focus) {
+  box-shadow: none !important;
+}
+
+:deep(.price-input .el-input__inner:focus) {
+  outline: none;
+  box-shadow: none;
+}
+
+:deep(.el-input-number.is-controls-right .el-input__wrapper) {
+  padding-right: 5px !important;
+}
+
+.price-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.price-control-btn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.price-control-btn:hover {
+  background-color: #fff6e6;
+  color: #ff6f00;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #333;
+  padding-bottom: 12px;
+  font-size: 15px;
+  transition: color 0.3s ease;
+}
+
+.form-section:hover :deep(.el-form-item__label) {
+  color: #ff6f00;
 }
 
 :deep(.el-input__wrapper),
 :deep(.el-textarea__wrapper) {
   box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background-color: #fff;
 }
 
 :deep(.el-input__wrapper:hover),
 :deep(.el-textarea__wrapper:hover) {
-  box-shadow: 0 0 0 1px #c0c4cc inset;
+  box-shadow: 0 0 0 1px #ff6f00 inset;
+  background-color: #fff;
 }
 
 :deep(.el-input__wrapper.is-focus),
 :deep(.el-textarea__wrapper.is-focus) {
   box-shadow: 0 0 0 1px #ff6f00 inset !important;
-}
-
-:deep(.el-form-item.is-required .el-form-item__label:before) {
-  color: #ff6f00;
+  background-color: #fff;
 }
 
 :deep(.el-radio-group) {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  gap: 32px;
 }
 
 :deep(.el-radio) {
   margin-right: 0;
+  transition: all 0.3s ease;
 }
 
-:deep(.el-cascader),
-:deep(.el-select) {
+:deep(.el-radio__input.is-checked .el-radio__inner) {
+  border-color: #ff6f00;
+  background: #ff6f00;
+}
+
+:deep(.el-radio__input.is-checked + .el-radio__label) {
+  color: #ff6f00;
+}
+
+:deep(.el-select),
+:deep(.el-cascader) {
   width: 100%;
 }
 
-.price-input {
+:deep(.el-input-number) {
   width: 100%;
 }
 
-:deep(.el-input-number.is-controls-right .el-input__wrapper) {
-  padding-right: 35px;
+:deep(.el-input-number .el-input__wrapper) {
+  padding-right: 5px !important;
 }
 
-:deep(.el-select .el-select__tags) {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+:deep(.el-input-number .el-input-number__decrease),
+:deep(.el-input-number .el-input-number__increase) {
+  width: 32px;
+  height: 38px;
+  line-height: 38px;
+  transition: all 0.3s ease;
 }
 
-:deep(.el-select .el-select__tags::-webkit-scrollbar) {
-  display: none;
+:deep(.el-input-number .el-input-number__decrease:hover),
+:deep(.el-input-number .el-input-number__increase:hover) {
+  color: #ff6f00;
 }
 
 :deep(.el-tag) {
-  margin-right: 6px;
-  border-radius: 4px;
+  margin: 2px 4px;
+  background-color: #fff6e6;
+  border-color: #ffd591;
+  color: #ff6f00;
+  border-radius: 6px;
+  padding: 0 10px;
+  height: 28px;
+  line-height: 26px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-tag:hover) {
+  background-color: #ff6f00;
+  border-color: #ff6f00;
+  color: #fff;
 }
 
 :deep(.el-tag .el-tag__close) {
-  color: #666;
+  color: #ff6f00;
+  right: -2px;
+  transition: all 0.3s ease;
 }
 
 :deep(.el-tag .el-tag__close:hover) {
-  color: #fff;
   background-color: #ff6f00;
+  color: #fff;
+}
+
+:deep(.el-select__tags) {
+  margin: 4px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+:deep(.el-cascader-panel) {
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式布局优化 */
+@media screen and (max-width: 1200px) {
+  .basic-info-form {
+    padding: 32px;
+  }
+
+  .two-column-form {
+    gap: 32px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .basic-info-form {
+    padding: 24px;
+  }
+
+  .two-column-form {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .price-row {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .form-section {
+    padding: 20px;
+  }
+
+  :deep(.el-cascader-panel) {
+    max-width: 100%;
+  }
 }
 </style>

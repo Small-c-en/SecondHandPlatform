@@ -7,24 +7,27 @@
       label-position="top"
       class="publish-form"
     >
-      <!-- 商品描述 -->
-      <el-form-item label="商品描述" prop="description" class="full-width">
-        <div class="description-tips">
-          <i class="el-icon-info"></i>
-          请详细描述商品的使用感受、配置参数、存在的问题等
-        </div>
-        <el-input
-          v-model="localInfo.description"
-          type="textarea"
-          :rows="6"
-          placeholder="建议从以下方面描述：商品的基本信息、使用感受、是否有保修、商品的优缺点等（10-2000字）"
-          maxlength="2000"
-          show-word-limit
-          resize="none"
-          class="description-textarea"
-          @input="handleInput"
-        />
-      </el-form-item>
+      <div class="form-section">
+        <div class="section-title">商品描述</div>
+        <!-- 商品描述 -->
+        <el-form-item prop="description" class="full-width">
+          <div class="description-tips">
+            <i class="el-icon-info"></i>
+            请详细描述商品的使用感受、配置参数、存在的问题等
+          </div>
+          <el-input
+            v-model="localInfo.description"
+            type="textarea"
+            :rows="6"
+            placeholder="建议从以下方面描述：商品的基本信息、使用感受、是否有保修、商品的优缺点等（10-2000字）"
+            maxlength="2000"
+            show-word-limit
+            resize="none"
+            class="description-textarea"
+            @input="handleInput"
+          />
+        </el-form-item>
+      </div>
 
       <div class="form-section">
         <div class="section-title">基本参数</div>
@@ -189,13 +192,23 @@ defineExpose({
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
 }
 
 .form-section {
   margin-bottom: 32px;
-  background: #f8f9fa;
+  /* background: #f8f9fa; */
+  border: 1px solid #dddfe570;
   border-radius: 8px;
   padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.form-section:hover {
+  background-color: rgba(255, 111, 0, 0.041);
+  border-color: #ff6f00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.1);
 }
 
 .section-title {
@@ -205,6 +218,11 @@ defineExpose({
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #eee;
+  transition: color 0.3s ease;
+}
+
+.form-section:hover .section-title {
+  color: #ff6f00;
 }
 
 .description-tips {
@@ -214,10 +232,20 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: color 0.3s ease;
+}
+
+.form-section:hover .description-tips {
+  color: #ff6f00;
 }
 
 .description-tips i {
   color: #909399;
+  transition: color 0.3s ease;
+}
+
+.form-section:hover .description-tips i {
+  color: #ff6f00;
 }
 
 .form-grid {
@@ -233,25 +261,36 @@ defineExpose({
 :deep(.el-form-item__label) {
   font-weight: 500;
   color: #333;
+  transition: color 0.3s ease;
+}
+
+.form-section:hover :deep(.el-form-item__label) {
+  color: #ff6f00;
 }
 
 :deep(.el-input__wrapper),
 :deep(.el-textarea__wrapper) {
   box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background-color: #fff;
 }
 
 :deep(.el-input__wrapper:hover),
 :deep(.el-textarea__wrapper:hover) {
-  box-shadow: 0 0 0 1px #c0c4cc inset;
+  box-shadow: 0 0 0 1px #ff6f00 inset;
+  background-color: #fff;
 }
 
 :deep(.el-input__wrapper.is-focus),
 :deep(.el-textarea__wrapper.is-focus) {
   box-shadow: 0 0 0 1px #ff6f00 inset !important;
+  background-color: #fff;
 }
 
 :deep(.el-textarea__inner) {
   font-family: inherit;
+  transition: all 0.3s ease;
 }
 
 :deep(.el-form-item.is-required .el-form-item__label:before) {
@@ -268,5 +307,67 @@ defineExpose({
 
 :deep(.el-date-editor.el-input) {
   width: 100%;
+}
+
+:deep(.el-select .el-input__wrapper),
+:deep(.el-date-editor .el-input__wrapper) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-select .el-input__wrapper:hover),
+:deep(.el-date-editor .el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #ff6f00 inset;
+}
+
+:deep(.el-select .el-input__wrapper.is-focus),
+:deep(.el-date-editor .el-input__wrapper.is-focus),
+:deep(el-textarea__inner.is-focus) {
+  box-shadow: 0 0 0 1px #ff6f00 inset !important;
+  border-color: #ff6f00;
+}
+
+:deep(.el-select-dropdown__item) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-select-dropdown__item:hover) {
+  background-color: #fff6e6;
+  color: #ff6f00;
+}
+
+:deep(.el-select-dropdown__item.selected) {
+  color: #ff6f00;
+  font-weight: bold;
+}
+
+:deep(.el-date-table td) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-date-table td:hover) {
+  color: #ff6f00;
+}
+
+:deep(.el-date-table td.current:not(.disabled) span) {
+  background-color: #ff6f00;
+}
+
+:deep(.el-date-table td.today span) {
+  color: #ff6f00;
+}
+
+/* 响应式布局优化 */
+@media screen and (max-width: 768px) {
+  .detailed-description-form {
+    padding: 20px;
+  }
+
+  .form-section {
+    padding: 16px;
+  }
+
+  .form-grid {
+    gap: 16px;
+  }
 }
 </style>

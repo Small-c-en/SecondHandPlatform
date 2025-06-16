@@ -48,8 +48,16 @@
               </el-descriptions-item>
               <el-descriptions-item label="商品价格">
                 <div class="price-info">
-                  <span class="current-price">¥{{ formData.basicInfo.price }}</span>
-                  <span v-if="formData.basicInfo.originalPrice" class="original-price">
+                  <span
+                    class="current-price"
+                    style="color: #ff6f00; font-weight: 600; font-size: 16px"
+                    >售价： ¥{{ formData.basicInfo.price }}</span
+                  >
+                  <span
+                    v-if="formData.basicInfo.originalPrice"
+                    style="margin-left: 10px; font-size: 12px"
+                    class="original-price"
+                  >
                     原价: ¥{{ formData.basicInfo.originalPrice }}
                   </span>
                 </div>
@@ -66,6 +74,7 @@
                   :key="tag"
                   class="mx-1"
                   size="small"
+                  style="margin-right: 10px"
                 >
                   {{ tag }}
                 </el-tag>
@@ -76,7 +85,7 @@
             </el-descriptions>
           </div>
 
-          <div class="info-group">
+          <div class="info-group" style="margin-top: 20px">
             <h4>商品详情</h4>
             <div class="info-item">
               <span class="label">品牌：</span>
@@ -220,10 +229,11 @@ const getLocationPath = (location) => {
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 30px;
 }
 
 .preview-card {
-  margin-bottom: 24px;
+  /* margin-bottom: 24px; */
 }
 
 .preview-card h3 {
@@ -269,7 +279,6 @@ const getLocationPath = (location) => {
 }
 
 .original-price .price {
-  font-size: 16px;
   color: #999;
   text-decoration: line-through;
 }
@@ -288,15 +297,19 @@ const getLocationPath = (location) => {
 }
 
 .info-group {
-  background: #f8f9fa;
+  /* background: rgba(255, 111, 0, 0.005); */
+  border: 1px solid #dddfe570;
   padding: 16px;
   border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .info-group h4 {
   margin: 0 0 12px;
   color: #333;
   font-size: 16px;
+  border-bottom: 1px solid #dddfe570;
+  padding-bottom: 15px;
 }
 
 .info-item {
@@ -331,11 +344,12 @@ const getLocationPath = (location) => {
 
 .action-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 20px;
   gap: 16px;
-  margin-top: 32px;
+  /* margin-top: 32px; */
   padding-top: 24px;
-  border-top: 1px solid #eee;
+  /* border-top: 1px solid #eee; */
 }
 
 :deep(.el-carousel__item) {
