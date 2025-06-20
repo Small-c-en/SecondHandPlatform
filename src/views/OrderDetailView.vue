@@ -18,13 +18,17 @@
       <OrderDetailProductItem v-else :product="order.product" />
 
       <div class="main-details-grid">
+        <!-- 左半栏 -->
         <div class="left-column">
-          <!-- OrderDetailPricePayment -->
+          <!-- 地址模块 -->
+          <OrderDetailAddress />
+          <!-- 支付模块 -->
           <OrderDetailPricePayment
             :payment-info="order.payment"
             @select-payment-method="handlePaymentMethodSelect"
           />
         </div>
+        <!-- 右半栏 -->
         <div class="right-column">
           <!-- OrderDetailSellerCard -->
           <OrderDetailSellerCard :seller="order.seller" />
@@ -69,6 +73,7 @@ import OrderDetailLogistics from '@/components/orderdetail/OrderDetailLogistics.
 import OrderDetailFixedActions from '@/components/orderdetail/OrderDetailFixedActions.vue'
 import OrderDetailTips from '@/components/orderdetail/OrderDetailTips.vue'
 import OrderDetailMultiProducts from '../components/orderdetail/OrderDetailMultiProducts.vue'
+import OrderDetailAddress from '@/components/orderdetail/OrderDetailAddress.vue'
 
 const route = useRoute()
 const router = useRouter()

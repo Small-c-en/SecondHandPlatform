@@ -27,7 +27,7 @@
           </div>
         </div>
 
-        <div class="products-grid">
+        <div class="products-grid" @click="navigateToProductDetail">
           <div v-for="product in filteredProducts" :key="product.id" class="product-card">
             <div class="product-image">
               <img :src="product.image" :alt="product.title" />
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <!-- 排行 -->
+        <!-- 排行
         <div class="rankings-section">
           <div class="ranking-lists">
             <div v-for="ranking in rankings" :key="ranking.type" class="ranking-card">
@@ -74,14 +74,14 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </section>
 
       <section class="recommendations-section">
         <div class="section-header">
           <h2>精选推荐</h2>
         </div>
-        <div class="recommendations-grid">
+        <div class="recommendations-grid" @click="navigateToProductDetail">
           <div v-for="product in recommendedProducts" :key="product.id" class="recommendation-card">
             <div class="product-image">
               <img :src="product.image" :alt="product.title" />
@@ -101,7 +101,7 @@
         </div>
       </section>
 
-      <section class="floor-section" v-for="floor in floors" :key="floor.id">
+      <!-- <section class="floor-section" v-for="floor in floors" :key="floor.id">
         <div class="floor-header" :style="{ background: floor.theme.gradient }">
           <div class="floor-title">
             <h2>{{ floor.title }}</h2>
@@ -129,7 +129,7 @@
             </div>
           </div>
         </div>
-      </section>
+      </section> -->
     </div>
   </div>
 </template>
@@ -139,6 +139,9 @@ import { ref, computed } from 'vue'
 import TopNav from '@/components/shared/TopNav.vue'
 import Carousel from '@/components/home/Carousel.vue'
 import CategoryNav from '@/components/home/CategoryNav.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const currentTab = ref('all')
 const filterTabs = [
@@ -196,75 +199,53 @@ const products = ref([
   // ... 更多商品数据
 ])
 
-const rankings = [
-  {
-    type: 'hot',
-    title: '热销榜',
-    icon: 'fas fa-fire',
-    items: [
-      {
-        title: 'MacBook Pro M1',
-        price: 8999,
-        image:
-      'https://assets.puxiang.com/uploads/photo/image/331225/bc13d448acbf6d41ef7532d65347d516.jpg-photo_sp',
-      },
-      // ... 更多榜单数据
-    ],
-  },
-  {
-    type: 'hot',
-    title: '热销榜',
-    icon: 'fas fa-fire',
-    items: [
-      {
-        title: 'MacBook Pro M1',
-        price: 8999,
-        image: 'path/to/image',
-      },
-      // ... 更多榜单数据
-    ],
-  },
-  {
-    type: 'hot',
-    title: '热销榜',
-    icon: 'fas fa-fire',
-    items: [
-      {
-        title: 'MacBook Pro M1',
-        price: 8999,
-        image: 'path/to/image',
-      },
-      // ... 更多榜单数据
-    ],
-  },
-  {
-    type: 'hot',
-    title: '热销榜',
-    icon: 'fas fa-fire',
-    items: [
-      {
-        title: 'MacBook Pro M1',
-        price: 8999,
-        image: 'path/to/image',
-      },
-      // ... 更多榜单数据
-    ],
-  },
-  {
-    type: 'hot',
-    title: '热销榜',
-    icon: 'fas fa-fire',
-    items: [
-      {
-        title: 'MacBook Pro M1',
-        price: 8999,
-        image: 'path/to/image',
-      },
-      // ... 更多榜单数据
-    ],
-  },
-  // ... 更多榜单
-]
+const navigateToProductDetail = (productId) => {
+  router.push(`/product/${productId}`)
+}
+
+// const rankings = [
+//   {
+//     type: 'hot',
+//     title: '热销榜',
+//     icon: 'fas fa-fire',
+//     items: [
+//       {
+//         title: 'MacBook Pro M1',
+//         price: 8999,
+//         image:
+//       'https://assets.puxiang.com/uploads/photo/image/331225/bc13d448acbf6d41ef7532d65347d516.jpg-photo_sp',
+//       },
+//       // ... 更多榜单数据
+//     ],
+//   },
+//   {
+//     type: 'hot',
+//     title: '热销榜',
+//     icon: 'fas fa-fire',
+//     items: [
+//       {
+//         title: 'MacBook Pro M1',
+//         price: 8999,
+//         image: 'path/to/image',
+//       },
+//       // ... 更多榜单数据
+//     ],
+//   },
+//   {
+//     type: 'hot',
+//     title: '热销榜',
+//     icon: 'fas fa-fire',
+//     items: [
+//       {
+//         title: 'MacBook Pro M1',
+//         price: 8999,
+//         image: 'path/to/image',
+//       },
+//       // ... 更多榜单数据
+//     ],
+//   },
+
+// ]
 
 const floors = [
   {

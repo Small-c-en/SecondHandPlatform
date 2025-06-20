@@ -19,15 +19,26 @@
         </button>
       </div>
       <div class="filter-tags">
-        <button
-          v-for="status in statusFilters"
-          :key="status.value"
-          :class="['filter-tag', { active: selectedStatuses.includes(status.value) }]"
-          @click="toggleStatus(status.value)"
-        >
-          {{ status.label }}
-          <span v-if="status.count" class="count">({{ status.count }})</span>
-        </button>
+        <div class="status-filter-group">
+          <el-select v-model="selectedPublishStatus" placeholder="发布状态" class="status-select">
+            <el-option label="全部发布状态" value="all" />
+            <el-option
+              v-for="status in publishStatusFilters"
+              :key="status.value"
+              :label="status.label + (status.count ? ` (${status.count})` : '')"
+              :value="status.value"
+            />
+          </el-select>
+          <el-select v-model="selectedSaleStatus" placeholder="售卖状态" class="status-select">
+            <el-option label="全部售卖状态" value="all" />
+            <el-option
+              v-for="status in saleStatusFilters"
+              :key="status.value"
+              :label="status.label + (status.count ? ` (${status.count})` : '')"
+              :value="status.value"
+            />
+          </el-select>
+        </div>
       </div>
     </div>
 
@@ -62,17 +73,90 @@
 
     <!-- 数据统计区 -->
     <div class="statistics-section">
-      <div class="stat-card">
-        <div class="stat-value">{{ statistics.onSale }}<span>件在售中</span></div>
-        <i class="fas fa-arrow-up"></i>
+      <div
+        class="stat-card"
+        :class="{ active: selectedPublishStatus === 'on_sale' }"
+        @click="handleStatCardClick('on_sale')"
+      >
+        <div class="stat-info">
+          <div class="stat-value">{{ statistics.onSale }}<span>件</span></div>
+          <div class="stat-label">在售商品</div>
+          <div class="stat-trend up">
+            <i class="fas fa-arrow-up"></i>
+            <span>较上周 +5%</span>
+          </div>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-shopping-bag"></i>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ statistics.pendingOrders }}<span>笔待处理</span></div>
-        <i class="fas fa-clock"></i>
+
+      <div
+        class="stat-card"
+        :class="{ active: selectedSaleStatus === 'to_ship' }"
+        @click="handleStatCardClick('to_ship', 'sale')"
+      >
+        <div class="stat-info">
+          <div class="stat-value">{{ statistics.pendingOrders }}<span>笔</span></div>
+          <div class="stat-label">待发货订单</div>
+          <div class="stat-trend urgent">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>需要处理</span>
+          </div>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-truck"></i>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ statistics.todayViews }}<span>次浏览</span></div>
-        <mini-trend-chart :data="statistics.viewsTrend" />
+
+      <div
+        class="stat-card"
+        :class="{ active: selectedSaleStatus === 'to_refund' }"
+        @click="handleStatCardClick('to_refund', 'sale')"
+      >
+        <div class="stat-info">
+          <div class="stat-value">{{ statistics.pendingRefunds }}<span>笔</span></div>
+          <div class="stat-label">待退款订单</div>
+          <div class="stat-trend warning">
+            <i class="fas fa-undo-alt"></i>
+            <span>{{ statistics.refundAmount }}元待处理</span>
+          </div>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-hand-holding-usd"></i>
+        </div>
+      </div>
+
+      <div
+        class="stat-card"
+        :class="{ active: selectedPublishStatus === 'sold' }"
+        @click="handleStatCardClick('sold')"
+      >
+        <div class="stat-info">
+          <div class="stat-value">{{ statistics.soldCount }}<span>件</span></div>
+          <div class="stat-label">已售商品</div>
+          <div class="stat-trend">
+            <mini-trend-chart :data="statistics.salesTrend" />
+            <span>近7天走势</span>
+          </div>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+
+      <div class="stat-card views">
+        <div class="stat-info">
+          <div class="stat-value">{{ statistics.todayViews }}<span>次</span></div>
+          <div class="stat-label">今日浏览</div>
+          <div class="stat-trend">
+            <mini-trend-chart :data="statistics.viewsTrend" />
+            <span>近7天趋势</span>
+          </div>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-eye"></i>
+        </div>
       </div>
     </div>
 
@@ -103,7 +187,12 @@
 
     <!-- 商品列表区 -->
     <div class="products-list" v-if="displayedProducts.length > 0">
-      <div v-for="product in displayedProducts" :key="product.id" class="product-card">
+      <div
+        v-for="product in displayedProducts"
+        :key="product.id"
+        :data-product-id="product.id"
+        class="product-card"
+      >
         <div class="checkbox-area">
           <input
             type="checkbox"
@@ -133,6 +222,13 @@
         </div>
         <div class="actions">
           <button class="action-btn" @click="editProduct(product)">编辑</button>
+          <button
+            v-if="product.saleStatus === 'to_ship'"
+            class="action-btn primary"
+            @click="handleShipping(product)"
+          >
+            发货
+          </button>
           <button class="action-btn" @click="toggleListing(product)">
             {{ product.status === 'on_sale' ? '下架' : '上架' }}
           </button>
@@ -169,17 +265,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import MiniTrendChart from './MiniTrendChart.vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElSelect, ElOption } from 'element-plus'
 
 const router = useRouter()
 const route = useRoute()
 
-// 状态过滤器选项
-const statusFilters = [
-  { label: '全部状态', value: 'all', count: 0 },
+// 发布状态过滤器选项
+const publishStatusFilters = [
   { label: '草稿箱', value: 'draft', count: 0 },
   { label: '待审核', value: 'pending', count: 0 },
   { label: '在售中', value: 'on_sale', count: 0 },
@@ -187,9 +282,20 @@ const statusFilters = [
   { label: '已卖出', value: 'sold', count: 0 },
 ]
 
+// 售卖状态过滤器选项
+const saleStatusFilters = [
+  { label: '待发货', value: 'to_ship', count: 0 },
+  { label: '待退款', value: 'to_refund', count: 0 },
+  { label: '退款中', value: 'refunding', count: 0 },
+  { label: '已完成', value: 'completed', count: 0 },
+]
+
+// 选中的状态
+const selectedPublishStatus = ref('all')
+const selectedSaleStatus = ref('all')
+
 // 响应式状态
 const searchQuery = ref('')
-const selectedStatuses = ref(['all'])
 const selectedProducts = ref([])
 const currentPage = ref(1)
 const totalPages = ref(10)
@@ -199,8 +305,12 @@ const totalProducts = ref(100)
 const statistics = reactive({
   onSale: 28,
   pendingOrders: 5,
-  todayViews: 156,
+  pendingRefunds: 3,
+  refundAmount: '2,380.00',
+  soldCount: 156,
+  todayViews: 245,
   viewsTrend: [45, 82, 67, 134, 156, 142, 192],
+  salesTrend: [12, 15, 18, 22, 25, 28, 32],
 })
 
 const products = ref([
@@ -228,27 +338,6 @@ const handleSearch = () => {
   // 实现搜索逻辑
 }
 
-const toggleStatus = (status) => {
-  if (status === 'all') {
-    selectedStatuses.value = ['all']
-  } else {
-    const allIndex = selectedStatuses.value.indexOf('all')
-    if (allIndex > -1) {
-      selectedStatuses.value = [status]
-    } else {
-      const index = selectedStatuses.value.indexOf(status)
-      if (index > -1) {
-        if (selectedStatuses.value.length > 1) {
-          selectedStatuses.value.splice(index, 1)
-        }
-      } else {
-        selectedStatuses.value = [status]
-      }
-    }
-  }
-  loadProducts()
-}
-
 const toggleProductSelection = (productId) => {
   const index = selectedProducts.value.indexOf(productId)
   if (index > -1) {
@@ -265,6 +354,10 @@ const getStatusLabel = (status) => {
     on_sale: '在售中',
     off_shelf: '已下架',
     sold: '已卖出',
+    to_ship: '待发货',
+    to_refund: '待退款',
+    refunding: '退款中',
+    completed: '已完成',
   }
   return statusMap[status] || status
 }
@@ -377,63 +470,69 @@ const openAutoListingSettings = () => {
   // 实现自动上下架设置逻辑
 }
 
-const updateStatusCounts = () => {
+const updateStatusCounts = (allProducts) => {
+  // 更新发布状态计数
+  publishStatusFilters.forEach((filter) => {
+    filter.count = allProducts.filter((p) => p.status === filter.value).length
+  })
+
+  // 更新售卖状态计数
+  saleStatusFilters.forEach((filter) => {
+    filter.count = allProducts.filter((p) => p.saleStatus === filter.value).length
+  })
+}
+
+const loadProducts = () => {
+  // 从本地存储加载商品
   const allProducts = [
     ...JSON.parse(localStorage.getItem('productDrafts') || '[]'),
     ...JSON.parse(localStorage.getItem('publishedProducts') || '[]'),
   ]
 
-  statusFilters.forEach((filter) => {
-    if (filter.value === 'all') {
-      filter.count = allProducts.length
-    } else {
-      filter.count = allProducts.filter((p) => p.status === filter.value).length
-    }
+  // 根据选中的状态过滤商品
+  products.value = allProducts.filter((product) => {
+    const matchPublishStatus =
+      selectedPublishStatus.value === 'all' || product.status === selectedPublishStatus.value
+    const matchSaleStatus =
+      selectedSaleStatus.value === 'all' || product.saleStatus === selectedSaleStatus.value
+    return matchPublishStatus && matchSaleStatus
   })
-}
 
-const loadProducts = () => {
-  // 如果是草稿状态，从本地存储加载
-  if (selectedStatuses.value.includes('draft')) {
-    const drafts = JSON.parse(localStorage.getItem('productDrafts') || '[]')
-    products.value = drafts.map((draft) => ({
-      id: draft.id,
-      title: draft.basicInfo?.title || '未命名商品',
-      mainImage: draft.images?.[0]?.url || '/placeholder.png',
-      category: draft.basicInfo?.category || '未分类',
-      condition: draft.basicInfo?.condition || '未设置',
-      price: draft.basicInfo?.price || 0,
-      originalPrice: draft.basicInfo?.originalPrice || 0,
-      status: 'draft',
-      isTop: false,
-      createdAt: draft.createdAt,
-    }))
-  } else {
-    // 从本地存储加载已发布的商品
-    const publishedProducts = JSON.parse(localStorage.getItem('publishedProducts') || '[]')
-    products.value = publishedProducts.filter((product) => {
-      if (selectedStatuses.value.includes('all')) {
-        return true
-      }
-      return selectedStatuses.value.includes(product.status)
-    })
-  }
-  updateStatusCounts()
+  // 更新状态计数
+  updateStatusCounts(allProducts)
 }
 
 // 监听状态变化
-watch(selectedStatuses, () => {
+watch([selectedPublishStatus, selectedSaleStatus], () => {
   loadProducts()
 })
 
 // 初始加载
 onMounted(() => {
   // 如果URL中有状态参数，设置选中状态
-  const statusParam = route.query.status
-  if (statusParam) {
-    selectedStatuses.value = [statusParam]
+  const { saleStatus, highlightId } = route.query
+
+  if (saleStatus) {
+    selectedSaleStatus.value = saleStatus
   }
+
   loadProducts()
+
+  // 如果有高亮商品ID，滚动到该商品并添加高亮效果
+  if (highlightId) {
+    nextTick(() => {
+      const productElement = document.querySelector(`[data-product-id="${highlightId}"]`)
+      if (productElement) {
+        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        productElement.classList.add('highlight-animation')
+
+        // 3秒后移除高亮效果
+        setTimeout(() => {
+          productElement.classList.remove('highlight-animation')
+        }, 3000)
+      }
+    })
+  }
 })
 
 // 确认弹窗状态
@@ -452,6 +551,44 @@ const handleConfirmAction = async () => {
     await confirmDialog.callback()
   }
   confirmDialog.visible = false
+}
+
+const handleShipping = (product) => {
+  router.push({
+    path: `/shipping/${product.orderId}`,
+    query: {
+      from: 'products',
+      productId: product.id,
+    },
+  })
+}
+
+// 更新点击处理方法
+const handleStatCardClick = (status, type = 'publish') => {
+  if (type === 'publish') {
+    // 如果当前状态已经是选中的，则取消选中
+    selectedPublishStatus.value = selectedPublishStatus.value === status ? 'all' : status
+  } else if (type === 'sale') {
+    // 如果当前状态已经是选中的，则取消选中
+    selectedSaleStatus.value = selectedSaleStatus.value === status ? 'all' : status
+  }
+
+  // 根据最新的选中状态更新多选框
+  if (selectedPublishStatus.value === 'all' && selectedSaleStatus.value === 'all') {
+    // 如果都是 all，则清空选中
+    selectedProducts.value = []
+  } else {
+    // 自动选中对应状态的商品
+    const productsToSelect = products.value.filter((product) => {
+      const matchPublishStatus =
+        selectedPublishStatus.value === 'all' || product.status === selectedPublishStatus.value
+      const matchSaleStatus =
+        selectedSaleStatus.value === 'all' || product.saleStatus === selectedSaleStatus.value
+      return matchPublishStatus && matchSaleStatus
+    })
+
+    selectedProducts.value = productsToSelect.map((p) => p.id)
+  }
 }
 </script>
 
@@ -613,24 +750,113 @@ const handleConfirmAction = async () => {
 
 .stat-card {
   flex: 1;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.active {
+  background: #fff3e0;
+  border-color: #ff6f00;
+}
+
+.stat-card.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-style: solid;
+  border-width: 0 24px 24px 0;
+  border-color: transparent #ff6f00 transparent transparent;
+}
+
+.stat-info {
+  flex: 1;
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
-  color: #ff5722;
+  color: #333;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
 }
 
 .stat-value span {
   font-size: 14px;
   color: #666;
   margin-left: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.stat-trend.up {
+  color: #52c41a;
+}
+
+.stat-trend.down {
+  color: #ff4d4f;
+}
+
+.stat-trend.urgent {
+  color: #ff6f00;
+}
+
+.stat-trend.warning {
+  color: #faad14;
+}
+
+.stat-trend i {
+  font-size: 14px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 111, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon i {
+  font-size: 20px;
+  color: #ff6f00;
+}
+
+.stat-card.views {
+  cursor: default;
+}
+
+.stat-card.views:hover {
+  transform: none;
 }
 
 .quick-tools {
@@ -703,6 +929,7 @@ const handleConfirmAction = async () => {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .product-card:hover {
@@ -844,6 +1071,16 @@ const handleConfirmAction = async () => {
   color: #ff4d4f;
 }
 
+.action-btn.primary {
+  border-color: #ff6f00;
+  color: #ff6f00;
+}
+
+.action-btn.primary:hover {
+  background-color: #ff6f00;
+  color: white;
+}
+
 .empty-state {
   text-align: center;
   padding: 48px 0;
@@ -890,5 +1127,77 @@ const handleConfirmAction = async () => {
 .status-tag.draft {
   background: #f0f2f5;
   color: #909399;
+}
+
+.status-filter-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.status-select {
+  width: 200px;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 20px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s;
+}
+
+:deep(.el-select .el-input__wrapper:hover) {
+  border-color: #ff6f00;
+}
+
+:deep(.el-select .el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #ff6f00 inset !important;
+}
+
+:deep(.el-select-dropdown__item) {
+  color: #606266;
+}
+
+:deep(.el-select-dropdown__item.hover) {
+  background-color: #fff3e0;
+}
+
+:deep(.el-select-dropdown__item.selected) {
+  color: #ff6f00;
+  background-color: #fff3e0;
+  font-weight: 700;
+}
+
+:deep(.el-select .el-select__tags .el-tag) {
+  background-color: #fff3e0;
+  border-color: #ffcc80;
+  color: #ff6f00;
+}
+
+:deep(.el-select .el-input.is-focus .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #ff6f00 inset !important;
+}
+
+:deep(.el-popper.is-light .el-popper__arrow::before) {
+  border-color: #ff6f00;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: #fff3e0;
+    transform: scale(1);
+  }
+  50% {
+    background-color: #ffe0b2;
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: white;
+    transform: scale(1);
+  }
+}
+
+.highlight-animation {
+  animation: highlight 3s ease;
 }
 </style>

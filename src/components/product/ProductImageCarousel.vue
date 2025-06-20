@@ -149,7 +149,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .product-image-carousel {
   display: flex;
   flex-direction: column;
@@ -222,26 +222,35 @@ onUnmounted(() => {
   height: 32px;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.1);
-  color: #666;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
+  /* color: #666; */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 1;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
 
 .thumb-control.prev {
   left: 0;
+  &:hover:not(:disabled) {
+    transform: translateX(-2px);
+  }
 }
 
 .thumb-control.next {
   right: 0;
+  &:hover:not(:disabled) {
+    transform: translateX(2px);
+  }
 }
 
 .thumb-control:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.2);
+  background: white;
+  border: 1px solid #ff6f007e;
   color: #ff6f00;
   transform: scale(1.1);
 }

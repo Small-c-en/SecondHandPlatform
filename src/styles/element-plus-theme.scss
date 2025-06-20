@@ -1,0 +1,190 @@
+/* Element Plus 主题定制 */
+:root {
+  --el-color-primary: #ff6f00 !important;
+  --el-color-primary-light-3: #ff9d4d !important;
+  --el-color-primary-light-5: #ffb780 !important;
+  --el-color-primary-light-7: #ffd0b3 !important;
+  --el-color-primary-light-8: #ffddc9 !important;
+  --el-color-primary-light-9: #fff3e0 !important;
+  --el-color-primary-dark-2: #cc5900 !important;
+}
+
+/* Button 按钮 */
+.el-button--primary {
+  --el-button-hover-bg-color: #ff8533;
+  --el-button-hover-border-color: #ff8533;
+}
+
+/* Select 选择器 */
+.el-select {
+  .el-input__wrapper.is-focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+  }
+  .el-select__tags .el-tag {
+    background-color: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary-light-5);
+    color: var(--el-color-primary);
+  }
+}
+
+/* Pagination 分页 */
+.el-pagination.is-background {
+  .el-pager li:not(.is-disabled) {
+    &.is-active {
+      background-color: var(--el-color-primary);
+    }
+    &:hover {
+      color: var(--el-color-primary);
+    }
+  }
+  .btn-prev:hover:not(:disabled),
+  .btn-next:hover:not(:disabled) {
+    color: var(--el-color-primary);
+  }
+}
+
+/* Radio 单选框 */
+.el-radio {
+  &__input.is-checked .el-radio__inner {
+    border-color: var(--el-color-primary);
+    background: var(--el-color-primary);
+  }
+  &__input.is-checked + .el-radio__label {
+    color: var(--el-color-primary);
+  }
+}
+
+/* Checkbox 复选框 */
+.el-checkbox {
+  &__input.is-checked .el-checkbox__inner {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+  }
+  &__input.is-checked + .el-checkbox__label {
+    color: var(--el-color-primary);
+  }
+}
+
+/* Input 输入框 */
+.el-input {
+  .el-input__wrapper.is-focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+  }
+}
+
+/* Textarea 文本域 */
+.el-textarea {
+  .el-textarea__inner:focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+  }
+}
+
+/* Switch 开关 */
+.el-switch {
+  &.is-checked .el-switch__core {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+  }
+}
+
+/* Slider 滑块 */
+.el-slider {
+  .el-slider__bar {
+    background-color: var(--el-color-primary);
+  }
+  .el-slider__button {
+    border-color: var(--el-color-primary);
+  }
+}
+
+/* DatePicker 日期选择器 */
+.el-date-picker {
+  .el-date-picker__header-label:hover,
+  .el-picker-panel__icon-btn:hover {
+    color: var(--el-color-primary);
+  }
+  .el-date-table td.current:not(.disabled) span {
+    background-color: var(--el-color-primary);
+  }
+  .el-date-table td.today span {
+    color: var(--el-color-primary);
+  }
+}
+
+/* TimePicker 时间选择器 */
+.el-time-panel {
+  .el-time-spinner__item.active:not(.disabled) {
+    color: var(--el-color-primary);
+  }
+}
+
+/* Tabs 标签页 */
+.el-tabs {
+  .el-tabs__item {
+    &.is-active {
+      color: var(--el-color-primary);
+    }
+    &:hover {
+      color: var(--el-color-primary);
+    }
+  }
+  .el-tabs__active-bar {
+    background-color: var(--el-color-primary);
+  }
+}
+
+/* Message 消息提示 */
+.el-message {
+  &--success {
+    --el-message-bg-color: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary-light-7);
+    .el-message__content {
+      color: var(--el-color-primary);
+    }
+  }
+}
+
+/* Dialog 对话框 */
+.el-dialog {
+  .el-dialog__headerbtn:hover .el-dialog__close {
+    color: var(--el-color-primary);
+  }
+}
+
+/* Form 表单 */
+.el-form-item.is-success {
+  .el-input__wrapper {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+  }
+  .el-input__inner {
+    box-shadow: none;
+  }
+}
+
+/* Table 表格 */
+.el-table {
+  th.el-table__cell {
+    background-color: var(--el-color-primary-light-9);
+  }
+  .el-table__row:hover > td.el-table__cell {
+    background-color: var(--el-color-primary-light-9);
+  }
+}
+
+/* Tag 标签 */
+.el-tag--primary {
+  --el-tag-bg-color: var(--el-color-primary-light-9);
+  --el-tag-border-color: var(--el-color-primary-light-5);
+  --el-tag-text-color: var(--el-color-primary);
+}
+
+/* Menu 菜单 */
+.el-menu {
+  .el-menu-item.is-active {
+    color: var(--el-color-primary);
+    background-color: var(--el-color-primary-light-9);
+  }
+  .el-menu-item:hover {
+    background-color: var(--el-color-primary-light-9);
+  }
+}

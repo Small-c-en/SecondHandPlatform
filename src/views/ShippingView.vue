@@ -113,6 +113,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import TopNav from '@/components/shared/TopNav.vue'
 
 const route = useRoute()
@@ -197,6 +198,23 @@ const fetchOrderInfo = async () => {
   }
 }
 
+// 返回上一页
+const handleBack = () => {
+  const fromPage = route.query.from
+  if (fromPage === 'products') {
+    router.push('/my-products')
+  } else if (fromPage === 'orders') {
+    router.push('/orders')
+  } else {
+    router.back()
+  }
+}
+
+// 取消
+const handleCancel = () => {
+  handleBack()
+}
+
 // 提交发货
 const handleSubmit = async () => {
   if (!formRef.value) return
@@ -208,24 +226,49 @@ const handleSubmit = async () => {
     // TODO: 调用API提交发货信息
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    ElMessage.success('发货成功')
-    router.push('/orders')
+    // 更新本地存储中的商品状态
+    const publishedProducts = JSON.parse(localStorage.getItem('publishedProducts') || '[]')
+    const productId = route.query.productId
+    const updatedProducts = publishedProducts.map((product) => {
+      if (product.id === productId) {
+        return {
+          ...product,
+          saleStatus: 'completed',
+          shippingInfo: {
+            company: shippingForm.value.company,
+            trackingNumber: shippingForm.value.trackingNumber,
+            shippedAt: new Date().toISOString(),
+            remark: shippingForm.value.remark,
+          },
+        }
+      }
+      return product
+    })
+    localStorage.setItem('publishedProducts', JSON.stringify(updatedProducts))
+
+    // 显示成功弹窗
+    ElMessage({
+      type: 'success',
+      message: '发货成功！',
+      duration: 2000,
+    })
+
+    // 延迟跳转到商品管理页面，并选中已完成状态
+    setTimeout(() => {
+      router.push({
+        path: '/my-products',
+        query: {
+          saleStatus: 'completed',
+          highlightId: productId, // 用于高亮显示刚发货的商品
+        },
+      })
+    }, 1500)
   } catch (error) {
     console.error('发货失败:', error)
     ElMessage.error('发货失败，请重试')
   } finally {
     submitting.value = false
   }
-}
-
-// 取消
-const handleCancel = () => {
-  router.back()
-}
-
-// 返回上一页
-const handleBack = () => {
-  router.back()
 }
 
 onMounted(() => {
@@ -235,6 +278,7 @@ onMounted(() => {
 
 <style scoped>
 .shipping-page {
+  margin-top: 50px;
   min-height: 100vh;
   background-color: #f5f5f5;
   padding-bottom: 40px;
@@ -265,14 +309,17 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #f8f8f8;
+  /* background-color: #f8f8f8; */
+  /* background-color: #ff6f0054; */
+  border: 1px solid #bebcba;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .back-button:hover {
-  background-color: #f0f0f0;
+  background-color: #ff6f00;
+  color: white;
 }
 
 .page-title {

@@ -37,14 +37,13 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps } from 'vue'
 
 const props = defineProps({
   order: {
     type: Object,
     required: true,
     default: () => ({
-      // Provide a more complete default for clarity
       orderNumber: 'N/A',
       orderTime: 'N/A',
       status: 'unknown',
@@ -53,6 +52,7 @@ const props = defineProps({
     }),
   },
 })
+const { order } = props
 
 const getStatusClass = (statusKey) => {
   const statusMap = {

@@ -208,7 +208,7 @@
                 filterable
                 allow-create
                 default-first-option
-                :max="3"
+                :max-collapse-tags="3"
                 placeholder="最多可添加3个标签"
                 class="tag-select"
                 @change="handleInput"

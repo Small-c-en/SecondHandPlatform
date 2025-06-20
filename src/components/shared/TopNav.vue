@@ -37,12 +37,17 @@
       <div class="cart-container" @click="goToCart">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-text">购物车</span>
-        <span v-if="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
+        <span v-if="cartItemCount > 0" class="cart-badge">{{
+          formatBadgeCount(cartItemCount)
+        }}</span>
       </div>
 
       <div class="message-container" @click="goToMessageCenter">
         <i class="fas fa-envelope"></i>
         <span class="notifications">消息</span>
+        <span v-if="unreadMessageCount > 0" class="message-badge">{{
+          formatBadgeCount(unreadMessageCount)
+        }}</span>
       </div>
 
       <div class="user-profile">
@@ -120,6 +125,14 @@ const userAvatar = ref(
 
 // Get cart count from store
 const cartItemCount = computed(() => cartStore.totalQuantity)
+
+// 模拟未读消息数量
+const unreadMessageCount = ref(12)
+
+// 格式化徽标数字
+const formatBadgeCount = (count) => {
+  return count > 99 ? '99+' : count
+}
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
@@ -209,49 +222,65 @@ const handleLogout = () => {
 }
 .search-bar {
   flex-grow: 0;
-  width: 400px;
+  width: 450px;
   margin: 0 20px;
+  position: relative;
 }
 
 .search-input-wrapper {
   display: flex;
   align-items: center;
   width: 100%;
-}
-
-.search-input-wrapper input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  font-size: 14px;
-  outline: none;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2px;
   transition: all 0.3s ease;
+  border: 1px solid #ccccccd2;
 }
 
-.search-input-wrapper input:focus {
+.search-input-wrapper:focus-within {
+  background: #fff;
   border-color: #ff6f00;
   box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.1);
 }
 
+.search-input-wrapper input {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper input::placeholder {
+  color: #999;
+}
+
 .search-input-wrapper button {
+  margin: 2px;
   padding: 8px 24px;
-  background-color: #f5f5f5;
+  background-color: #ff9e440d;
   color: #666;
-  border: 1px solid #ddd;
-  border-left: none;
-  border-radius: 0 4px 4px 0;
+  border: none;
+  border-radius: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 14px;
   transition: all 0.3s ease;
+  border: 1px solid #cccccc4c;
+}
+
+.search-input-wrapper button:hover:not(:disabled) {
+  background-color: #e0e0e0;
 }
 
 .search-input-wrapper button.active {
   background-color: #ff6f00;
-  border-color: #ff6f00;
   color: white;
 }
 
@@ -262,6 +291,11 @@ const handleLogout = () => {
 .search-input-wrapper button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.search-input-wrapper button i {
+  font-size: 14px;
+  margin-right: 2px;
 }
 
 .user-actions {
@@ -275,19 +309,25 @@ const handleLogout = () => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #131212a1;
-  transition: all linear 0.3s;
-  &:hover {
-    color: #ff5722;
-    .fas {
-      color: #f26100;
-    }
-  }
+  gap: 6px;
+  color: #666;
+  padding: 8px 12px;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+}
+
+.cart-container:hover {
+  color: #ff6f00;
+  background: #fff3e0;
+  border-color: #ff9e44;
+  transform: translateY(-1px);
 }
 
 .cart-text {
   font-size: 14px;
+  font-weight: 500;
 }
 
 .avatar-frame {
@@ -312,16 +352,55 @@ const handleLogout = () => {
 }
 
 .message-container {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  transition: all 0.3s linear;
-  font-size: 15px;
-  color: #131212a1;
-  &:hover {
-    color: #ff5722;
-  }
+  padding: 8px 12px;
+  border-radius: 16px;
+  color: #666;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.message-container:hover {
+  color: #ff6f00;
+  background: #fff3e0;
+  border-color: #ff9e44;
+  transform: translateY(-1px);
+}
+
+.notifications {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cart-badge,
+.message-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ff4444e0;
+  color: white;
+  font-size: 12px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid #ff4444;
+  font-weight: bold;
+}
+
+.cart-container .fas,
+.message-container .fas {
+  font-size: 16px;
+  margin-right: 0;
+  color: inherit;
 }
 
 .user-profile {

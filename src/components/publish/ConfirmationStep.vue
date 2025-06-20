@@ -105,7 +105,7 @@
             </div>
           </div>
 
-          <div class="info-group">
+          <!-- <div class="info-group">
             <h4>损耗情况</h4>
             <div class="wear-conditions">
               <el-tag
@@ -117,7 +117,7 @@
                 {{ getWearConditionLabel(condition) }}
               </el-tag>
             </div>
-          </div>
+          </div> -->
 
           <div class="info-group">
             <h4>规格参数</h4>

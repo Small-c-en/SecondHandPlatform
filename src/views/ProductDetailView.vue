@@ -2,8 +2,11 @@
   <div class="product-detail-page">
     <TopNav />
     <div class="main-content">
-      <!-- 商品标题，独占一行在最上方 -->
-      <ProductTitle :title="product.title" class="page-main-title" />
+      <div class="page-header">
+        <el-button :icon="ArrowLeftBold" circle @click="handleBack" class="back-button" />
+        <!-- 商品标题，独占一行在最上方 -->
+        <ProductTitle :title="product.title" class="page-main-title" />
+      </div>
 
       <!-- 商品核心信息行 -->
       <div class="product-main-info-row">
@@ -74,6 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { ArrowLeftBold } from '@element-plus/icons-vue'
 import TopNav from '@/components/shared/TopNav.vue'
 import Footer from '@/components/shared/Footer.vue'
 import ProductImageCarousel from '@/components/product/ProductImageCarousel.vue'
@@ -145,7 +149,7 @@ const handleBuyNow = () => {
   })
 
   router.push({
-    path: '/order',
+    path: '/orderDetail/order1-topay',
     query: {
       products: [product.value.id],
       type: 'buy_now',
@@ -180,10 +184,31 @@ onMounted(() => {
   margin: 0 auto;
   padding: 20px;
   background-color: #fff;
+  position: relative;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  border: 1px solid #e0e0e0;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.back-button:hover {
+  border-color: #ff6f00;
+  background-color: #fff7f2;
+  color: #ff6f00;
 }
 
 .page-main-title {
-  margin-bottom: 20px;
+  margin-bottom: 0;
+  flex: 1;
 }
 
 .product-main-info-row {

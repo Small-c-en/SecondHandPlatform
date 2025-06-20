@@ -30,13 +30,15 @@
           {{ review.content || '商品非常好，物超所值！卖家发货也很快。' }}
         </p>
         <div class="review-images" v-if="review.images && review.images.length > 0">
-          <img
+          <el-image
             v-for="(image, index) in review.images"
             :key="index"
             :src="image.thumbnailUrl || 'https://via.placeholder.com/80x80?text=评价图'"
-            alt="评价图片"
+            :preview-src-list="review.images.map((img) => img.thumbnailUrl)"
+            :initial-index="index"
+            fit="cover"
             class="review-image-thumbnail"
-            @click="openImagePreview(review.images, index)"
+            preview-teleported
           />
         </div>
       </div>
@@ -62,20 +64,28 @@
     </div>
 
     <div class="pagination">
-      <!-- 占位：分页导航 -->
-      <button class="page-button">上一页</button>
-      <span class="page-info">1 / {{ totalPages }}</span>
-      <button class="page-button">下一页</button>
+      <el-button
+        :disabled="currentPage === 1"
+        @click="currentPage--"
+        class="custom-page-button prev-button"
+      >
+        上一页
+      </el-button>
+      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+      <el-button
+        :disabled="currentPage === totalPages"
+        @click="currentPage++"
+        class="custom-page-button next-button"
+      >
+        下一页
+      </el-button>
     </div>
-
-    <ImagePreview v-model="showPreview" :images="previewImages" :initial-index="previewIndex" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { ElRate } from 'element-plus'
-import ImagePreview from '../shared/ImagePreview.vue'
+import { ElImage, ElButton } from 'element-plus'
 
 // 模拟评价数据
 const totalReviews = ref(108)
@@ -112,16 +122,6 @@ const totalPages = computed(() => Math.ceil(totalReviews.value / reviewsPerPage.
 
 const getStars = (rating) => {
   return '★'.repeat(rating) + '☆'.repeat(5 - rating)
-}
-
-const showPreview = ref(false)
-const previewImages = ref([])
-const previewIndex = ref(0)
-
-const openImagePreview = (images, index) => {
-  previewImages.value = images
-  previewIndex.value = index
-  showPreview.value = true
 }
 </script>
 
@@ -228,10 +228,15 @@ const openImagePreview = (images, index) => {
 .review-image-thumbnail {
   width: 80px;
   height: 80px;
-  object-fit: cover;
   border-radius: 4px;
   border: 1px solid #ddd;
-  cursor: pointer; /* 暗示可点击放大 */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.review-image-thumbnail:hover {
+  border-color: #ff6f00;
+  transform: scale(1.05);
 }
 
 .pagination {
@@ -239,31 +244,47 @@ const openImagePreview = (images, index) => {
   margin-top: 25px;
   padding-top: 15px;
   border-top: 1px solid #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
-.page-button {
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  color: #555;
-  padding: 8px 15px;
-  margin: 0 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.custom-page-button {
+  background-color: transparent;
+  border: 1px solid #ff6f00;
+  color: #ff6f00;
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
-.page-button:hover {
-  background-color: #e0e0e0;
+.custom-page-button:hover:not(:disabled) {
+  background-color: #ff6f00;
+  color: white;
 }
 
-.page-button:disabled {
-  opacity: 0.6;
+.custom-page-button:disabled {
+  border-color: #ddd;
+  color: #999;
   cursor: not-allowed;
 }
 
 .page-info {
-  margin: 0 10px;
   font-size: 14px;
-  color: #555;
+  color: #666;
+  min-width: 60px;
+  text-align: center;
+}
+
+:deep(.el-image-viewer__wrapper) {
+  --el-image-viewer-mask-color: rgba(0, 0, 0, 0.8);
+}
+
+:deep(.el-image-viewer__close) {
+  color: #fff;
+}
+
+:deep(.el-image-viewer__actions__inner) {
+  color: #fff;
 }
 </style>

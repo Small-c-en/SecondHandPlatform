@@ -175,6 +175,7 @@ onMounted(() => {
 .review-page {
   min-height: 100vh;
   background: #f5f5f5;
+  margin-top: 60px;
 }
 
 .review-container {

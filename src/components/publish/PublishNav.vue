@@ -25,15 +25,18 @@ defineEmits(['save-draft', 'exit'])
   align-items: center;
   padding: 0 20px;
   height: 55px;
-  background-color: #e6f0ff; /* 淡蓝色导航条 */
-  border-bottom: 1px solid #cce0ff;
+  background-color: white; /* 淡蓝色导航条 */
+  border: 1px solid #cccccc6e;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 8px 0px;
+  border-radius: 8px;
+
   z-index: 900;
 }
 
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #ff6f00;
 }
 
 .actions .nav-button {
@@ -45,9 +48,12 @@ defineEmits(['save-draft', 'exit'])
   margin-left: 10px;
   cursor: pointer;
   font-size: 14px;
+  transition: all ease 0.3s;
 }
 
 .actions .nav-button:hover {
-  background-color: #f8f9fa;
+  background-color: #fefaf7;
+  color: #ff6f00;
+  border-color: #ff6f00;
 }
 </style>
