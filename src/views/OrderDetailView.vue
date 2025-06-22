@@ -21,7 +21,9 @@
         <!-- 左半栏 -->
         <div class="left-column">
           <!-- 地址模块 -->
-          <OrderDetailAddress />
+          <OrderDetailAddress
+            v-if="order.status === '待付款' && order.products && order.products.length > 1"
+          />
           <!-- 支付模块 -->
           <OrderDetailPricePayment
             :payment-info="order.payment"

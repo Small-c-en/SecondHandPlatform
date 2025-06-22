@@ -172,13 +172,13 @@ const applyFilter = (filterType, value) => {
 .category-select {
   width: 140px;
 }
-
+/* 
 :deep(.el-select .el-input__wrapper) {
   border-radius: 4px;
   background-color: #fff;
   border: 1px solid #ccc;
   transition: all 0.3s;
-}
+} */
 
 :deep(.el-select .el-input__wrapper:hover) {
   border-color: #ff6f00;
@@ -210,6 +210,11 @@ const applyFilter = (filterType, value) => {
   border-radius: 4px;
   font-size: 14px;
   text-align: center;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+  &:focus {
+    border-color: #ff6f00;
+  }
 }
 .price-input::-webkit-outer-spin-button,
 .price-input::-webkit-inner-spin-button {
@@ -232,7 +237,7 @@ const applyFilter = (filterType, value) => {
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-radius: 15px; /* Pill shape for conditions */
-  background-color: #f0f0f0;
+  background-color: white;
   color: #333;
   font-size: 13px;
   cursor: pointer;
@@ -245,15 +250,16 @@ const applyFilter = (filterType, value) => {
 
 .condition-tags button:hover,
 .sort-options button:hover {
-  border-color: #aaa;
-  background-color: #e0e0e0;
+  border-color: #ff6f00;
+  background-color: #fff3e0;
+  color: #ff6f00;
 }
 
 .condition-tags button.active,
 .sort-options button.active {
-  background-color: #007bff; /* Blue highlight for active */
+  background-color: #ff6f00; /* Blue highlight for active */
   color: white;
-  border-color: #007bff;
+  border-color: #ff6f00;
 }
 
 /* Responsive adjustments */

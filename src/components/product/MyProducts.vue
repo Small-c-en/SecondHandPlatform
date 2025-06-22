@@ -144,8 +144,8 @@
           <i class="fas fa-chart-line"></i>
         </div>
       </div>
-
-      <div class="stat-card views">
+      <!-- 今日浏览 -->
+      <!-- <div class="stat-card views">
         <div class="stat-info">
           <div class="stat-value">{{ statistics.todayViews }}<span>次</span></div>
           <div class="stat-label">今日浏览</div>
@@ -157,11 +157,11 @@
         <div class="stat-icon">
           <i class="fas fa-eye"></i>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- 快捷工具区 -->
-    <div class="quick-tools">
+    <!-- <div class="quick-tools">
       <button class="tool-btn" @click="openInventoryAlert">
         <i class="fas fa-warehouse"></i>
         库存预警
@@ -174,7 +174,7 @@
         <i class="fas fa-clock"></i>
         自动上下架设置
       </button>
-    </div>
+    </div> -->
 
     <!-- 批量操作区 -->
     <div class="batch-actions" v-show="selectedProducts.length > 0">

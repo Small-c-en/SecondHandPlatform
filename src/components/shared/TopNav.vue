@@ -236,6 +236,9 @@ const handleLogout = () => {
   padding: 2px;
   transition: all 0.3s ease;
   border: 1px solid #ccccccd2;
+  &:hover{
+    border: 1px solid #ff5722;
+  }
 }
 
 .search-input-wrapper:focus-within {
