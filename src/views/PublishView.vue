@@ -89,7 +89,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 
 import PublishNav from '../components/publish/PublishNav.vue'
@@ -118,6 +118,7 @@ const formData = reactive({
     category: [],
     price: null,
     originalPrice: null,
+    quantity: 1, // 添加商品数量字段
     condition: '',
     publishStatus: 2, // 默认立即发布
     customTags: [], // 自定义标签
@@ -165,6 +166,7 @@ const loadEditData = async (productId) => {
     // 这里应该是从API获取数据
     // const response = await getProductDetail(productId)
     // const productData = response.data
+    console.log(`Loading product data for ID: ${productId}`)
     const productData = route.query
 
     // 填充基本信息
@@ -173,6 +175,7 @@ const loadEditData = async (productId) => {
       category: productData.category ? JSON.parse(productData.category) : [],
       price: parseFloat(productData.price) || null,
       originalPrice: parseFloat(productData.originalPrice) || null,
+      quantity: parseInt(productData.quantity) || 1, // 添加商品数量
       condition: productData.condition || '',
       publishStatus: 2,
       customTags: productData.customTags ? JSON.parse(productData.customTags) : [],
@@ -274,7 +277,7 @@ const saveDraft = async () => {
     ElMessage.success('草稿已保存')
 
     router.push({
-      path: '/manage-products',
+      path: '/my-products',
       query: { status: 'draft' },
     })
   } catch (error) {
@@ -285,8 +288,34 @@ const saveDraft = async () => {
   }
 }
 
-const exitPublish = () => {
-  router.push('/')
+const exitPublish = async () => {
+  try {
+    // 弹出确认对话框
+    const { action } = await ElMessageBox.confirm('是否要保存当前内容为草稿？', '退出编辑', {
+      confirmButtonText: '保存草稿',
+      cancelButtonText: '不保存',
+      distinguishCancelAndClose: true,
+      type: 'warning',
+    })
+
+    if (action === 'confirm') {
+      // 用户选择保存草稿
+      await saveDraft()
+    } else {
+      // 用户选择不保存，直接退出
+      router.push('/')
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      // 用户点击了"不保存"
+      router.push('/')
+    } else if (error === 'close') {
+      // 用户关闭了对话框，不做任何操作
+      console.log('Dialog closed')
+    } else {
+      console.error('退出发布失败:', error)
+    }
+  }
 }
 
 const handlePublish = async () => {
@@ -301,6 +330,7 @@ const handlePublish = async () => {
       condition: formData.basicInfo.condition,
       price: formData.basicInfo.price,
       originalPrice: formData.basicInfo.originalPrice,
+      quantity: formData.basicInfo.quantity, // 添加商品数量
       status: formData.basicInfo.publishStatus === 2 ? 'pending' : 'draft',
       isTop: false,
       createdAt: new Date().toISOString(),

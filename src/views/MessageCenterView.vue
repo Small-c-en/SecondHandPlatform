@@ -6,6 +6,7 @@
     <MessageTabBar
       :activeTab="activeTab"
       :unreadCounts="unreadCounts"
+      :recentSource="sourceTab"
       @update:activeTab="activeTab = $event"
     />
     <div class="message-content">
@@ -34,99 +35,27 @@
       v-model="showMessageDialog"
       :title="currentMessage.title"
       width="500px"
-      class="message-dialog"
+      class="system-message-dialog"
       :show-close="true"
       @closed="handleDialogClose"
     >
-      <div class="message-dialog-content">
-        <div class="message-header">
-          <div class="message-meta">
-            <div class="message-type">
-              <el-icon class="message-icon" :class="currentMessage.priority"><Bell /></el-icon>
-              <span>系统通知</span>
-            </div>
-            <div class="message-tags">
-              <el-tag
-                v-if="currentMessage.priority"
-                :type="currentMessage.priority === 'high' ? 'danger' : 'warning'"
-                size="small"
-                effect="light"
-              >
-                {{ currentMessage.priority === 'high' ? '重要' : '普通' }}
-              </el-tag>
-              <el-tag v-if="currentMessage.category" size="small" effect="plain">
-                {{ currentMessage.category }}
-              </el-tag>
-            </div>
-          </div>
-          <div class="message-time">{{ currentMessage.time }}</div>
+      <div class="system-message-container">
+        <div class="system-message-header">
+          <el-tag v-if="currentMessage.priority === 'high'" type="danger" effect="light"
+            >重要通知</el-tag
+          >
+          <el-tag v-else type="warning" effect="light">系统通知</el-tag>
+          <span class="system-message-time">{{ currentMessage.time }}</span>
         </div>
 
-        <div class="message-body">
-          <div class="message-title">{{ currentMessage.title }}</div>
-          <div class="message-content" v-html="currentMessage.summary"></div>
+        <h2 class="system-message-title">{{ currentMessage.title }}</h2>
+        <div class="system-message-content" v-html="currentMessage.summary"></div>
 
-          <div
-            v-if="currentMessage.attachments && currentMessage.attachments.length"
-            class="message-attachments"
-          >
-            <div class="attachments-title">
-              <el-icon><Document /></el-icon>
-              <span>附件</span>
-            </div>
-            <div class="attachments-list">
-              <div
-                v-for="(attachment, index) in currentMessage.attachments"
-                :key="index"
-                class="attachment-item"
-                @click="downloadAttachment(attachment)"
-              >
-                <div class="attachment-icon">
-                  <el-icon><Document /></el-icon>
-                </div>
-                <div class="attachment-info">
-                  <div class="attachment-name">{{ attachment.name }}</div>
-                  <div class="attachment-size">{{ attachment.size }}</div>
-                </div>
-                <el-button type="primary" link>
-                  <el-icon><Download /></el-icon>
-                </el-button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="currentMessage.actions && currentMessage.actions.length"
-            class="message-actions"
-          >
-            <el-button
-              v-for="action in currentMessage.actions"
-              :key="action.type"
-              :type="action.type"
-              :icon="action.icon"
-              @click="handleAction(action)"
-            >
-              {{ action.text }}
-            </el-button>
-          </div>
-        </div>
-
-        <div class="message-footer">
-          <div class="message-tip">
-            <el-icon><InfoFilled /></el-icon>
-            <span>消息将在确认后标记为已读</span>
-          </div>
-          <div class="message-actions">
-            <el-button @click="showMessageDialog = false">关闭</el-button>
-            <el-button
-              type="primary"
-              @click="handleConfirmRead"
-              :disabled="currentMessage.read"
-              :icon="currentMessage.read ? 'Select' : 'Check'"
-            >
-              {{ currentMessage.read ? '已读' : '标记已读' }}
-            </el-button>
-          </div>
+        <div class="system-message-footer">
+          <el-button @click="showMessageDialog = false">关闭</el-button>
+          <el-button type="primary" @click="handleConfirmRead" :disabled="currentMessage.read">
+            {{ currentMessage.read ? '已读' : '标记已读' }}
+          </el-button>
         </div>
       </div>
     </el-dialog>
@@ -134,9 +63,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Bell, InfoFilled, Document, Download } from '@element-plus/icons-vue'
 import MessageTopNav from '@/components/shared/MessageTopNav.vue'
 import MessageTabBar from '@/components/shared/MessageTabBar.vue'
 import SystemNotifications from '@/components/message/SystemNotifications.vue'
@@ -148,6 +76,7 @@ const router = useRouter()
 
 // 初始化数据
 const activeTab = ref('system')
+const sourceTab = ref('system') // 记录用户从哪个标签页点击进入的
 const showMessageDialog = ref(false)
 const currentMessage = ref({})
 const unreadCounts = ref({
@@ -228,6 +157,7 @@ const viewSystemMessage = (message) => {
 
 // 标记消息为已读
 const markMessageAsRead = (messageId) => {
+  sourceTab.value = activeTab.value // 记住当前活动的标签页
   const message = systemMessages.value.find((msg) => msg.id === messageId)
   viewSystemMessage(message)
   if (message && !message.read) {
@@ -241,6 +171,8 @@ const handleDialogClose = () => {
   if (!currentMessage.value.read) {
     markMessageAsRead(currentMessage.value.id)
   }
+  // 返回用户之前的标签页
+  activeTab.value = sourceTab.value
 }
 
 // 确认已读
@@ -263,23 +195,38 @@ const scrollToTop = () => {
 
 // 查看详情
 const viewDetail = (id) => {
+  sourceTab.value = activeTab.value // 记住当前活动的标签页
+  localStorage.setItem('messageSourceTab', activeTab.value) // 保存到本地存储
   router.push('/order-detail/' + id)
 }
 
 // 进入聊天窗口
 const enterChat = (id) => {
+  sourceTab.value = activeTab.value // 记住当前活动的标签页
+  localStorage.setItem('messageSourceTab', activeTab.value) // 保存到本地存储
   router.push('/chat/' + id)
 }
 
 // 下载附件
-const downloadAttachment = (attachment) => {
-  // 实现下载附件的逻辑
-}
+// const downloadAttachment = (attachment) => {
+//   // 实现下载附件的逻辑
+// }
+
+// 页面加载时，尝试从本地存储恢复之前的标签页
+onMounted(() => {
+  const savedTab = localStorage.getItem('messageSourceTab')
+  if (savedTab) {
+    activeTab.value = savedTab
+    sourceTab.value = savedTab
+    // 使用后清除，避免影响其他消息中心的访问
+    localStorage.removeItem('messageSourceTab')
+  }
+})
 
 // 处理动作
-const handleAction = (action) => {
-  // 实现处理动作的逻辑
-}
+// const handleAction = (action) => {
+//   // 实现处理动作的逻辑
+// }
 </script>
 
 <style scoped>
@@ -557,5 +504,70 @@ const handleAction = (action) => {
 
 .message-container:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* 新增系统消息弹窗样式 */
+.system-message-dialog :deep(.el-dialog) {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+.system-message-container {
+  padding: 24px;
+  color: #333;
+}
+
+.system-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.system-message-time {
+  color: #999;
+  font-size: 14px;
+}
+
+.system-message-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.system-message-content {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 24px;
+  white-space: pre-wrap;
+}
+
+.system-message-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .system-message-dialog {
+    width: 90% !important;
+  }
+
+  .system-message-container {
+    padding: 16px;
+  }
+
+  .system-message-title {
+    font-size: 18px;
+  }
+
+  .system-message-content {
+    font-size: 14px;
+  }
 }
 </style>

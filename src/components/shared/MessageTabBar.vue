@@ -5,7 +5,10 @@
         v-for="tab in tabs"
         :key="tab.value"
         class="tab-button"
-        :class="{ active: activeTab === tab.value }"
+        :class="{
+          active: activeTab === tab.value,
+          'recent-source': tab.value === recentSource && activeTab !== tab.value,
+        }"
         @click="$emit('update:activeTab', tab.value)"
       >
         <span class="tab-text">{{ tab.label }}</span>
@@ -34,6 +37,10 @@ defineProps({
   unreadCounts: {
     type: Object,
     default: () => ({}),
+  },
+  recentSource: {
+    type: String,
+    default: '',
   },
 })
 
@@ -100,6 +107,22 @@ defineEmits(['update:activeTab'])
 
 .tab-button.active::after {
   width: 24px;
+}
+
+.tab-button.recent-source {
+  position: relative;
+}
+
+.tab-button.recent-source::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 2px;
+  background-color: #ff9800;
+  transition: width 0.3s ease;
 }
 
 .unread-badge {

@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
 import PaymentSuccessView from '@/views/PaymentSuccessView.vue'
+import SellerDetailView from '../views/SellerDetailView.vue'
+import SellerManagementView from '../views/SellerManagementView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -80,12 +82,15 @@ const router = createRouter({
     },
     {
       path: '/seller/:id',
-      name: 'SellerDetail',
-      component: () => import('@/views/SellerDetailView.vue'),
-      meta: {
-        title: '卖家详情',
-        requiresAuth: false,
-      },
+      name: 'seller',
+      component: SellerDetailView,
+      meta: { requiresAuth: false },
+    },
+    {
+      path: '/seller-management',
+      name: 'seller-management',
+      component: SellerManagementView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/shipping/:id',
@@ -121,6 +126,16 @@ const router = createRouter({
       meta: {
         title: '退款处理',
         requiresAuth: true,
+      },
+    },
+    {
+      path: '/category/:category',
+      name: 'Category',
+      component: () => import('@/views/CategoryView.vue'),
+      props: true,
+      meta: {
+        title: '商品分类',
+        requiresAuth: false,
       },
     },
   ],

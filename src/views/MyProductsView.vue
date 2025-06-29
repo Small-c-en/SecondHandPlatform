@@ -9,9 +9,25 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import TopNav from '../components/shared/TopNav.vue'
 import Footer from '../components/shared/Footer.vue'
 import MyProducts from '../components/product/MyProducts.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+onMounted(() => {
+  // 如果URL中有status参数，保持该参数
+  if (!route.query.status) {
+    // 如果没有status参数，但是有其他参数，添加status参数
+    const query = { ...route.query }
+    if (Object.keys(query).length > 0) {
+      router.replace({ path: route.path, query })
+    }
+  }
+})
 </script>
 
 <style scoped>

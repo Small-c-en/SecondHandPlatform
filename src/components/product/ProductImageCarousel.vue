@@ -1,9 +1,15 @@
 <template>
   <div class="product-image-carousel" @mouseenter="pauseAutoPlay" @mouseleave="resumeAutoPlay">
-    <div class="main-image">
-      <img :src="images[currentIndex]" :alt="`商品图片${currentIndex + 1}`" />
-      <div class="zoom-lens" v-if="isZooming" :style="zoomLensStyle" @mousemove="handleZoom"></div>
-      <div class="zoomed-image" v-if="isZooming" :style="zoomedImageStyle"></div>
+    <div
+      class="main-image"
+      @mouseenter="startZoom"
+      @mouseleave="stopZoom"
+      @mousemove="handleZoom"
+      ref="imageContainer"
+    >
+      <img :src="images[currentIndex]" :alt="`商品图片${currentIndex + 1}`" ref="mainImage" />
+      <div class="zoom-lens" v-if="isZooming" :style="zoomLensStyle"></div>
+      <div class="zoom-result" v-if="isZooming" :style="zoomResultStyle"></div>
     </div>
 
     <div class="thumbnails-container">
@@ -118,26 +124,110 @@ const resumeAutoPlay = () => {
 }
 
 // 图片放大功能相关
+const imageContainer = ref(null)
+const mainImage = ref(null)
 const zoomLensStyle = ref({})
-const zoomedImageStyle = ref({})
+const zoomResultStyle = ref({})
+const zoomLensSize = 160 // 放大镜尺寸，变大
+const zoomResultBox = {
+  width: 400,
+  height: 400,
+  gap: 24, // 右侧间距
+}
+
+const updateZoomResultPosition = () => {
+  if (!imageContainer.value) return
+  const rect = imageContainer.value.getBoundingClientRect()
+  return {
+    top: rect.top + window.scrollY,
+    left: rect.right + zoomResultBox.gap + window.scrollX,
+  }
+}
+
+function getImageUrl(src) {
+  if (!src) return ''
+  if (/^https?:\/\//.test(src)) return src // 网络图片
+  if (src.startsWith('/')) return src // public 目录
+  try {
+    return new URL(`@/assets/${src}`, import.meta.url).href // assets 目录
+  } catch {
+    return src
+  }
+}
 
 const handleZoom = (event) => {
-  if (!isZooming.value) return
+  if (!isZooming.value || !imageContainer.value || !mainImage.value) return
 
-  const image = event.target
-  const { left, top } = image.getBoundingClientRect()
-  const x = event.clientX - left
-  const y = event.clientY - top
+  const container = imageContainer.value.getBoundingClientRect()
+  const imgEl = mainImage.value
+  const imgWidth = imgEl.clientWidth
+  const imgHeight = imgEl.clientHeight
 
+  // 计算鼠标相对于图片容器的位置
+  let mouseX = event.clientX - container.left
+  let mouseY = event.clientY - container.top
+
+  // 计算镜头的一半尺寸用于边界检测和居中
+  const halfLensSize = zoomLensSize / 2
+
+  // 边界检测和约束
+  if (mouseX - halfLensSize < 0) mouseX = halfLensSize
+  if (mouseY - halfLensSize < 0) mouseY = halfLensSize
+  if (mouseX + halfLensSize > container.width) mouseX = container.width - halfLensSize
+  if (mouseY + halfLensSize > container.height) mouseY = container.height - halfLensSize
+
+  // 更新镜头位置
   zoomLensStyle.value = {
-    left: `${x}px`,
-    top: `${y}px`,
+    left: `${mouseX - halfLensSize}px`,
+    top: `${mouseY - halfLensSize}px`,
+    width: `${zoomLensSize}px`,
+    height: `${zoomLensSize}px`,
   }
 
-  zoomedImageStyle.value = {
-    backgroundImage: `url(${props.images[currentIndex.value]})`,
-    backgroundPosition: `-${x * 2}px -${y * 2}px`,
+  // 计算放大比例
+  const scale = zoomResultBox.width / zoomLensSize
+  // 计算背景尺寸（用主图实际渲染宽高）
+  const bgWidth = imgWidth * scale
+  const bgHeight = imgHeight * scale
+
+  // 计算背景位置
+  const lensX = mouseX - halfLensSize
+  const lensY = mouseY - halfLensSize
+  const percentX = lensX / (container.width - zoomLensSize)
+  const percentY = lensY / (container.height - zoomLensSize)
+  const bgPosX = -percentX * (bgWidth - zoomResultBox.width)
+  const bgPosY = -percentY * (bgHeight - zoomResultBox.height)
+
+  // 计算 zoom-result 的悬浮位置
+  const pos = updateZoomResultPosition()
+
+  // 设置放大结果样式
+  zoomResultStyle.value = {
+    backgroundImage: `url('${getImageUrl(props.images[currentIndex.value])}')`,
+    backgroundSize: `${bgWidth}px ${bgHeight}px`,
+    backgroundPosition: `${bgPosX}px ${bgPosY}px`,
+    width: `${zoomResultBox.width}px`,
+    height: `${zoomResultBox.height}px`,
+    position: 'fixed',
+    top: pos ? `${pos.top}px` : '0',
+    left: pos ? `${pos.left}px` : '0',
+    border: '2px solid #ff6f00',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    backgroundRepeat: 'no-repeat',
+    backgroundColor: '#fff',
+    pointerEvents: 'none',
+    zIndex: 1000,
   }
+}
+
+const startZoom = (event) => {
+  isZooming.value = true
+  handleZoom(event)
+}
+
+// 停止放大
+const stopZoom = () => {
+  isZooming.value = false
 }
 
 onMounted(() => {
@@ -163,6 +253,7 @@ onUnmounted(() => {
   overflow: hidden;
   background: #fff;
   height: 400px;
+  cursor: crosshair; /* 十字光标，表明可放大 */
 }
 
 .main-image img {
@@ -263,26 +354,20 @@ onUnmounted(() => {
 /* 放大镜效果 */
 .zoom-lens {
   position: absolute;
-  width: 100px;
-  height: 100px;
-  border: 2px solid #fff;
-  background: rgba(255, 255, 255, 0.3);
-  cursor: none;
-  pointer-events: none;
+  border: 1px solid #ff6f00;
+  background-color: rgba(255, 111, 0, 0.1);
+  cursor: crosshair;
+  pointer-events: none; /* 让鼠标事件穿透到下层元素 */
 }
 
-.zoomed-image {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 400px;
-  height: 400px;
-  background-size: 200%;
-  border: 1px solid #eee;
-  display: none;
+/* 放大结果容器样式 */
+.zoom-result {
+  /* 样式由JS动态控制 */
 }
 
-.main-image:hover .zoomed-image {
-  display: block;
+@media (max-width: 1200px) {
+  .zoom-result {
+    display: none;
+  }
 }
 </style>

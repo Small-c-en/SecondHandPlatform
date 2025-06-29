@@ -8,7 +8,7 @@
         @mouseenter="activeCategory = category"
         @mouseleave="activeCategory = null"
       >
-        <router-link :to="category.link" class="category-link">
+        <router-link :to="category.link" class="category-link" @click="navigateToCategory(category)">
           <i :class="category.icon"></i>
           <span>{{ category.name }}</span>
           <i class="fas fa-chevron-right arrow"></i>
@@ -120,6 +120,11 @@ const categories = [
   },
   // 更多分类...
 ]
+
+const navigateToCategory = (category) => {
+  // Implement the logic to navigate to the new category view
+  console.log('Navigating to category:', category)
+}
 </script>
 
 <style scoped>

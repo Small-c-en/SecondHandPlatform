@@ -180,7 +180,7 @@ onMounted(() => {
 }
 
 .main-content {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: 20px;
   background-color: #fff;
@@ -215,10 +215,14 @@ onMounted(() => {
   display: flex;
   gap: 40px;
   margin-bottom: 40px;
+  position: relative;
+  min-height: 500px;
+  overflow: visible;
 }
 
 .product-image-column {
   flex: 0 0 500px;
+  position: relative;
 }
 
 .product-details-content-column {

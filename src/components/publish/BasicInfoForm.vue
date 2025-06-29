@@ -153,6 +153,21 @@
 
       <!-- 右侧列 -->
       <div class="form-column">
+        <!-- 商品数量 - 占据整行 -->
+        <div class="form-section">
+          <el-form-item label="商品数量" prop="quantity" required>
+            <el-input-number
+              v-model="localInfo.quantity"
+              :min="1"
+              :max="9999"
+              :precision="0"
+              :step="1"
+              class="quantity-input"
+              placeholder="请输入商品数量"
+              :controls="false"
+            />
+          </el-form-item>
+        </div>
         <!-- 商品成色 - 占据整行 -->
         <div class="form-section">
           <el-form-item label="商品成色" prop="condition">
@@ -238,7 +253,10 @@ const emit = defineEmits(['update:basic-info'])
 
 const formRef = ref(null)
 
-const localInfo = reactive({ ...props.basicInfo })
+const localInfo = reactive({
+  ...props.basicInfo,
+  quantity: props.basicInfo.quantity || 1, // Add default quantity
+})
 
 // 处理地区数据
 const provinceList = ref([])
@@ -373,6 +391,7 @@ const rules = {
   ],
   category: [{ required: true, message: '请选择商品分类', trigger: 'change' }],
   price: [{ required: true, message: '请输入售价', trigger: 'blur' }],
+  quantity: [{ required: true, message: '请输入商品数量', trigger: 'blur' }],
   condition: [{ required: true, message: '请选择商品成色', trigger: 'change' }],
   location: [{ required: true, message: '请选择商品所在地', trigger: 'change' }],
 }

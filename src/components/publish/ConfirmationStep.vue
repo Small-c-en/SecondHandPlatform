@@ -62,6 +62,9 @@
                   </span>
                 </div>
               </el-descriptions-item>
+              <el-descriptions-item label="商品数量">
+                {{ formData.basicInfo.quantity || 1 }}
+              </el-descriptions-item>
               <el-descriptions-item label="商品成色">
                 {{ formData.basicInfo.condition }}成新
               </el-descriptions-item>
@@ -220,6 +223,15 @@ const getCategoryPath = (category) => {
 
 const getLocationPath = (location) => {
   return Array.isArray(location) ? location.join(' ') : location
+}
+
+const formatInspection = (inspection) => {
+  const labels = {
+    needed: '需要验货',
+    not_needed: '无需验货',
+    optional: '可选验货',
+  }
+  return labels[inspection] || inspection
 }
 </script>
 

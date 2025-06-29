@@ -24,6 +24,20 @@
           <BrowsingHistory v-if="activeTab === 'history'" />
         </div>
       </div>
+      <div class="profile-actions">
+        <router-link to="/my-products" class="profile-action-link">
+          <el-icon><Goods /></el-icon>
+          <span>我的商品</span>
+        </router-link>
+        <router-link to="/seller-management" class="profile-action-link">
+          <el-icon><ShoppingBag /></el-icon>
+          <span>卖家中心</span>
+        </router-link>
+        <router-link to="/order" class="profile-action-link">
+          <el-icon><List /></el-icon>
+          <span>我的订单</span>
+        </router-link>
+      </div>
     </div>
     <Footer />
   </div>
@@ -117,5 +131,28 @@ const handleNavigation = (tabName) => {
 
 .right-section {
   min-height: 600px;
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.profile-action-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.profile-action-link:hover {
+  background: #fff5f2;
+  color: #ff5722;
 }
 </style>
